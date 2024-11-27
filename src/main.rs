@@ -3,7 +3,7 @@ use std::collections::HashMap;
 fn main() {
     println!("Hello, idol!");
     let scope = &mut HashMap::new();
-    dbg!(parse_expr("(1 == 2) | (1 != 200)".to_string(), scope)
+    dbg!(parse_expr("1 < 2 < 3 == 3".to_string(), scope)
         .unwrap()
         .eval(scope));
 }
@@ -25,7 +25,11 @@ fn parse_expr(soruce: String, scope: &mut HashMap<String, Type>) -> Option<Expr>
         Expr::Value(Type::Symbol(token))
     };
 
-    if let Some(operator) = token_list.get(token_list.len() - 2) {
+    if let Some(operator) = token_list
+        .len()
+        .checked_sub(2)
+        .and_then(|idx| token_list.get(idx))
+    {
         let operator = match operator.as_str() {
             "+" => Operator::Add,
             "-" => Operator::Sub,
