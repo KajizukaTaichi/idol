@@ -3,7 +3,7 @@ use std::collections::HashMap;
 fn main() {
     println!("Hello, idol!");
     let scope = &mut HashMap::new();
-    dbg!(parse_expr("1 < 2 < 2".to_string(), scope)
+    dbg!(parse_expr("(1 == 2) | (1 != 200)".to_string(), scope)
         .unwrap()
         .eval(scope));
 }
@@ -253,8 +253,8 @@ impl Infix {
                 }
             }
             Operator::Or => {
-                if left.is_some() && right.is_none() {
-                    right?
+                if left.is_some() || right.is_none() {
+                    right.unwrap_or(left?)
                 } else {
                     return None;
                 }
