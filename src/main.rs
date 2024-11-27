@@ -3,7 +3,7 @@ use std::collections::HashMap;
 fn main() {
     println!("Hello, idol!");
     let scope = &mut HashMap::new();
-    dbg!(parse_expr("1 < 2 < 3".to_string(), scope)
+    dbg!(parse_expr("1 < 2 < 2".to_string(), scope)
         .unwrap()
         .eval(scope));
 }
@@ -45,6 +45,8 @@ fn parse_expr(soruce: String, scope: &mut HashMap<String, Type>) -> Option<Expr>
             "<=" => Operator::LessThanEq,
             ">" => Operator::GreaterThan,
             ">=" => Operator::GreaterThanEq,
+            "&" => Operator::And,
+            "|" => Operator::Or,
             _ => return None,
         };
         Some(Expr::Infix(Box::new(Infix {
@@ -183,60 +185,76 @@ enum Operator {
     LessThanEq,
     GreaterThan,
     GreaterThanEq,
+    And,
+    Or,
 }
 
 impl Infix {
     fn eval(&self, scope: &mut HashMap<String, Type>) -> Option<Type> {
-        let left = self.values.0.eval(scope)?;
-        let right = self.values.1.eval(scope)?;
+        let left = self.values.0.eval(scope);
+        let right = self.values.1.eval(scope);
         dbg!(&left, &right);
 
         Some(match self.operator {
-            Operator::Add => Type::Number(left.get_number() + right.get_number()),
-            Operator::Sub => Type::Number(left.get_number() - right.get_number()),
-            Operator::Mul => Type::Number(left.get_number() * right.get_number()),
-            Operator::Div => Type::Number(left.get_number() / right.get_number()),
-            Operator::Mod => Type::Number(left.get_number() % right.get_number()),
-            Operator::Pow => Type::Number(left.get_number().powf(right.get_number())),
+            Operator::Add => Type::Number(left?.get_number() + right?.get_number()),
+            Operator::Sub => Type::Number(left?.get_number() - right?.get_number()),
+            Operator::Mul => Type::Number(left?.get_number() * right?.get_number()),
+            Operator::Div => Type::Number(left?.get_number() / right?.get_number()),
+            Operator::Mod => Type::Number(left?.get_number() % right?.get_number()),
+            Operator::Pow => Type::Number(left?.get_number().powf(right?.get_number())),
 
             Operator::Equal => {
-                if left.get_symbol() == right.get_symbol() {
-                    left
+                if left?.get_symbol() == right.clone()?.get_symbol() {
+                    right?
                 } else {
                     return None;
                 }
             }
             Operator::NotEq => {
-                if left.get_symbol() != right.get_symbol() {
-                    left
+                if left?.get_symbol() != right.clone()?.get_symbol() {
+                    right?
                 } else {
                     return None;
                 }
             }
             Operator::LessThan => {
-                if left.get_number() < right.get_number() {
-                    right
+                if left.clone()?.get_number() < right.clone()?.get_number() {
+                    right?
                 } else {
                     return None;
                 }
             }
             Operator::LessThanEq => {
-                if left.get_number() <= right.get_number() {
-                    right
+                if left?.get_number() <= right.clone()?.get_number() {
+                    right?
                 } else {
                     return None;
                 }
             }
             Operator::GreaterThan => {
-                if left.get_number() > right.get_number() {
-                    right
+                if left?.get_number() > right.clone()?.get_number() {
+                    right?
                 } else {
                     return None;
                 }
             }
             Operator::GreaterThanEq => {
-                if left.get_number() >= right.get_number() {
-                    right
+                if left?.get_number() >= right.clone()?.get_number() {
+                    right?
+                } else {
+                    return None;
+                }
+            }
+            Operator::And => {
+                if left.is_some() && right.is_some() {
+                    right?
+                } else {
+                    return None;
+                }
+            }
+            Operator::Or => {
+                if left.is_some() && right.is_none() {
+                    right?
                 } else {
                     return None;
                 }
