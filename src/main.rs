@@ -3,9 +3,8 @@ use std::collections::HashMap;
 fn main() {
     println!("Hello, idol!");
     let scope = &mut HashMap::new();
-    dbg!(parse_expr("1 < 2 < 3 == 3".to_string(), scope)
-        .unwrap()
-        .eval(scope));
+    let expr = parse_expr("1 < 2 < 3 == 3".to_string(), scope);
+    dbg!(expr.clone(), expr.and_then(|expr| expr.eval(scope)));
 }
 
 fn parse_expr(soruce: String, scope: &mut HashMap<String, Type>) -> Option<Expr> {
@@ -194,7 +193,6 @@ impl Infix {
     fn eval(&self, scope: &mut HashMap<String, Type>) -> Option<Type> {
         let left = self.values.0.eval(scope);
         let right = self.values.1.eval(scope);
-        dbg!(&left, &right);
 
         Some(match self.operator {
             Operator::Add => Type::Number(left?.get_number() + right?.get_number()),
