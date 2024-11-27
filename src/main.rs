@@ -9,29 +9,23 @@ fn main() {
 }
 
 fn parse_expr(soruce: String, scope: &mut HashMap<String, Type>) -> Option<Expr> {
-    let tokens: Vec<String> = tokenize_expr(soruce)?;
-    let left = tokens.last()?.trim().to_string();
-    let left = if let Ok(n) = left.parse::<f64>() {
+    let token_list: Vec<String> = tokenize_expr(soruce)?;
+    let token = token_list.last()?.trim().to_string();
+    let token = if let Ok(n) = token.parse::<f64>() {
         Expr::Value(Type::Number(n))
-    } else if left.starts_with('(') && left.ends_with(')') {
-        let left = {
-            let mut left = left.clone();
-            left.remove(0);
-            left.remove(left.len() - 1);
-            left
+    } else if token.starts_with('(') && token.ends_with(')') {
+        let token = {
+            let mut token = token.clone();
+            token.remove(0);
+            token.remove(token.len() - 1);
+            token
         };
-        parse_expr(left, scope)?
+        parse_expr(token, scope)?
     } else {
-        Expr::Value(Type::Symbol(left))
+        Expr::Value(Type::Symbol(token))
     };
 
-    if let Some(operator) = {
-        let mut tokens = tokens.clone();
-        tokens.reverse();
-        tokens
-    }
-    .get(1)
-    {
+    if let Some(operator) = token_list.get(token_list.len() - 2) {
         let operator = match operator.as_str() {
             "+" => Operator::Add,
             "-" => Operator::Sub,
@@ -52,12 +46,15 @@ fn parse_expr(soruce: String, scope: &mut HashMap<String, Type>) -> Option<Expr>
         Some(Expr::Infix(Box::new(Infix {
             operator,
             values: (
-                parse_expr(tokens.get(..tokens.len() - 2)?.to_vec().join(" "), scope)?,
-                left,
+                parse_expr(
+                    token_list.get(..token_list.len() - 2)?.to_vec().join(" "),
+                    scope,
+                )?,
+                token,
             ),
         })))
     } else {
-        return Some(left);
+        return Some(token);
     }
 }
 
