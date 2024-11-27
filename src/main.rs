@@ -40,8 +40,11 @@ fn parse_expr(soruce: String, scope: &mut HashMap<String, Type>) -> Option<Expr>
             "%" => Operator::Mod,
             "^" => Operator::Pow,
             "==" => Operator::Equal,
+            "!=" => Operator::NotEq,
             "<" => Operator::LessThan,
+            "<=" => Operator::LessThanEq,
             ">" => Operator::GreaterThan,
+            ">=" => Operator::GreaterThanEq,
             _ => return None,
         };
         Some(Expr::Infix(Box::new(Infix {
@@ -175,8 +178,11 @@ enum Operator {
     Mod,
     Pow,
     Equal,
+    NotEq,
     LessThan,
+    LessThanEq,
     GreaterThan,
+    GreaterThanEq,
 }
 
 impl Infix {
@@ -192,8 +198,16 @@ impl Infix {
             Operator::Div => Type::Number(left.get_number() / right.get_number()),
             Operator::Mod => Type::Number(left.get_number() % right.get_number()),
             Operator::Pow => Type::Number(left.get_number().powf(right.get_number())),
+
             Operator::Equal => {
                 if left.get_symbol() == right.get_symbol() {
+                    left
+                } else {
+                    return None;
+                }
+            }
+            Operator::NotEq => {
+                if left.get_symbol() != right.get_symbol() {
                     left
                 } else {
                     return None;
@@ -206,8 +220,22 @@ impl Infix {
                     return None;
                 }
             }
+            Operator::LessThanEq => {
+                if left.get_number() <= right.get_number() {
+                    right
+                } else {
+                    return None;
+                }
+            }
             Operator::GreaterThan => {
                 if left.get_number() > right.get_number() {
+                    right
+                } else {
+                    return None;
+                }
+            }
+            Operator::GreaterThanEq => {
+                if left.get_number() >= right.get_number() {
                     right
                 } else {
                     return None;
