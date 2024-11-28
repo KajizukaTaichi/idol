@@ -180,12 +180,37 @@ fn parse_opecode(code: String) -> Option<Statement> {
             parse_expr(code.get(0)?.to_string())?,
             parse_expr(code.get(1)?.to_string())?,
         )
+    } else if code.starts_with("func") {
+        let code = code["func".len()..].to_string();
+        let code = tokenize_expr(code, vec![' ', '　', '\n', '\t', '\r'])?;
+        Statement::Define(
+            code.get(0)?.to_string(),
+            {
+                let args = code.get(2)?.to_string();
+                args[1..args.len() - 2]
+                    .split(",")
+                    .map(String::from)
+                    .collect()
+            },
+            parse_expr(code.get(2)?.to_string())?,
+        )
     } else if code.starts_with("let") {
         let code = code["let".len()..].to_string();
         let (name, code) = code.split_once("=")?;
         Statement::Let(name.trim().to_string(), parse_expr(code.to_string())?)
+    } else if code.starts_with("expr") {
+        let code = code["expr".len()..].to_string();
+        Statement::Expr(parse_expr(code)?)
     } else {
-        Statement::Expr(parse_expr(code.to_string())?)
+        let code = tokenize_expr(code.to_string(), vec![' ', '　', '\n', '\t', '\r'])?;
+        Statement::Call(
+            code.get(0)?.to_string(),
+            code.get(1..)?
+                .to_vec()
+                .iter()
+                .map(|i| parse_expr(i.to_string()).unwrap_or(Expr::Value(Type::Null)))
+                .collect(),
+        )
     })
 }
 
@@ -239,6 +264,22 @@ impl Engine {
                 }
                 Some(result)
             }
+            Statement::Define(name, args, code) => {
+                let func_obj = Type::Function(args, Box::new(code));
+                self.scope.insert(name, func_obj.clone());
+                Some(func_obj)
+            }
+            Statement::Call(name, value_args) => {
+                if let Some(Type::Function(func_args, code)) = self.scope.clone().get(&name) {
+                    for (arg, val) in func_args.iter().zip(value_args) {
+                        let val = val.eval(self)?;
+                        self.scope.insert(arg.to_string(), val);
+                    }
+                    code.eval(self)
+                } else {
+                    return None;
+                }
+            }
             Statement::Expr(expr) => expr.eval(self),
         }
     }
@@ -252,14 +293,17 @@ enum Statement {
     Let(String, Expr),
     If(Expr, Expr, Option<Expr>),
     While(Expr, Expr),
+    Define(String, Vec<String>, Expr),
+    Call(String, Vec<Expr>),
     Expr(Expr),
 }
 
 #[derive(Debug, Clone)]
 enum Type {
     Number(f64),
-    String(String),
     Symbol(String),
+    String(String),
+    Function(Vec<String>, Box<Expr>),
     Null,
 }
 
@@ -268,7 +312,7 @@ impl Type {
         match self {
             Type::Number(n) => n.to_owned(),
             Type::Symbol(s) | Type::String(s) => s.parse().unwrap_or(0.0),
-            Type::Null => 0.0,
+            Type::Null | Type::Function(_, _) => 0.0,
         }
     }
 
@@ -278,6 +322,7 @@ impl Type {
             Type::String(s) => format!("\"{s}\""),
             Type::Number(n) => n.to_string(),
             Type::Null => "null".to_string(),
+            Type::Function(args, _) => format!("function({})", args.join(", ")),
         }
     }
 
@@ -285,7 +330,7 @@ impl Type {
         match self {
             Type::Symbol(s) | Type::String(s) => s.to_string(),
             Type::Number(n) => n.to_string(),
-            Type::Null => String::new(),
+            Type::Null | Type::Function(_, _) => String::new(),
         }
     }
 }
