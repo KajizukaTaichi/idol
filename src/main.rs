@@ -1,13 +1,24 @@
-use std::collections::HashMap;
+use rustyline::DefaultEditor;
+use std::collections::BTreeMap;
 
 fn main() {
-    println!("Hello, idol!");
-    let scope = &mut HashMap::new();
-    let expr = parse_expr("1 < 2 < 3 == 3".to_string(), scope);
-    dbg!(expr.clone(), expr.and_then(|expr| expr.eval(scope)));
+    println!("idol 0.1.0");
+    let mut engine = Engine::new();
+    let mut rl = DefaultEditor::new().unwrap();
+    loop {
+        let code = rl.readline("> ").unwrap();
+        if code.is_empty() {
+            continue;
+        }
+
+        if let Some(ast) = parse_program(code.clone()) {
+            engine.set_program(ast);
+            engine.run_program();
+        }
+    }
 }
 
-fn parse_expr(soruce: String, scope: &mut HashMap<String, Type>) -> Option<Expr> {
+fn parse_expr(soruce: String) -> Option<Expr> {
     let token_list: Vec<String> = tokenize_expr(soruce)?;
     let token = token_list.last()?.trim().to_string();
     let token = if let Ok(n) = token.parse::<f64>() {
@@ -19,7 +30,7 @@ fn parse_expr(soruce: String, scope: &mut HashMap<String, Type>) -> Option<Expr>
             token.remove(token.len() - 1);
             token
         };
-        parse_expr(token, scope)?
+        parse_expr(token)?
     } else {
         Expr::Value(Type::Symbol(token))
     };
@@ -49,10 +60,7 @@ fn parse_expr(soruce: String, scope: &mut HashMap<String, Type>) -> Option<Expr>
         Some(Expr::Infix(Box::new(Infix {
             operator,
             values: (
-                parse_expr(
-                    token_list.get(..token_list.len() - 2)?.to_vec().join(" "),
-                    scope,
-                )?,
+                parse_expr(token_list.get(..token_list.len() - 2)?.to_vec().join(" "))?,
                 token,
             ),
         })))
@@ -118,6 +126,133 @@ fn tokenize_expr(input: String) -> Option<Vec<String>> {
     Some(tokens)
 }
 
+fn parse_program(source: String) -> Option<Program> {
+    let mut program: Program = Vec::new();
+    for line in source.lines() {
+        let line = line.trim().to_string();
+        if let Some((ln, code)) = line.split_once(":") {
+            program.push((
+                Some(ln.to_string()),
+                parse_opecode(code.trim().to_string())?,
+            ));
+        } else {
+            program.push((None, parse_opecode(line.trim().to_string())?));
+        }
+    }
+    Some(program)
+}
+
+fn parse_opecode(code: String) -> Option<Statement> {
+    let code = code.trim();
+    Some(if code.starts_with("print") {
+        Statement::Print(parse_expr(code["print".len()..].to_string())?)
+    } else if code.starts_with("goto") {
+        Statement::Goto(parse_expr(code["goto".len()..].to_string())?)
+    } else if code.starts_with("if") {
+        let code = code["if".len()..].to_string();
+        let (cond, code) = code.split_once("then")?;
+        if let Some((then, elses)) = code.split_once("else") {
+            Statement::If(
+                parse_expr(cond.to_string())?,
+                Box::new(parse_opecode(then.to_string())?),
+                Some(Box::new(parse_opecode(elses.to_string())?)),
+            )
+        } else {
+            Statement::If(
+                parse_expr(cond.to_string())?,
+                Box::new(parse_opecode(code.to_string())?),
+                None,
+            )
+        }
+    } else if code.starts_with("let") {
+        let code = code["let".len()..].to_string();
+        let (name, code) = code.split_once("=")?;
+        Statement::Let(name.trim().to_string(), parse_expr(code.to_string())?)
+    } else if code == "end" {
+        Statement::End
+    } else {
+        return None;
+    })
+}
+
+#[derive(Debug, Clone)]
+struct Engine {
+    pc: usize,
+    program: Program,
+    scope: Scope,
+}
+
+impl Engine {
+    fn new() -> Engine {
+        Engine {
+            pc: 0,
+            program: vec![],
+            scope: BTreeMap::new(),
+        }
+    }
+
+    fn set_program(&mut self, program: Program) {
+        self.program.extend(program);
+    }
+
+    fn run_program(&mut self) -> Option<()> {
+        while self.program.len() > self.pc {
+            let code = self.program[self.pc].1.clone();
+            if self.run_opecode(code)? {
+                self.pc += 1;
+            }
+        }
+        self.pc = 0;
+        Some(())
+    }
+
+    fn run_opecode(&mut self, code: Statement) -> Option<bool> {
+        match code {
+            Statement::Print(expr) => println!("{}", expr.eval(&mut self.scope)?.get_symbol()),
+            Statement::Let(name, expr) => {
+                self.scope.insert(name, expr.eval(&mut self.scope.clone())?);
+            }
+            Statement::If(expr, then, elses) => {
+                if expr.eval(&mut self.scope).is_some() {
+                    if !self.run_opecode(*then)? {
+                        return Some(false);
+                    }
+                } else {
+                    if let Some(elses) = elses {
+                        if !self.run_opecode(*elses)? {
+                            return Some(false);
+                        }
+                    }
+                }
+            }
+            Statement::Goto(addr) => {
+                let addr = addr.eval(&mut self.scope)?.get_symbol();
+                self.pc = self.program.iter().position(|(x, _)| {
+                    if let Some(x) = x {
+                        x.clone() == addr
+                    } else {
+                        false
+                    }
+                })?;
+                return Some(false);
+            }
+            Statement::End => std::process::exit(0),
+        }
+        Some(true)
+    }
+}
+
+type Scope = BTreeMap<String, Type>;
+type Program = Vec<(Option<String>, Statement)>;
+#[derive(Debug, Clone)]
+enum Statement {
+    Print(Expr),
+    Let(String, Expr),
+    Goto(Expr),
+    If(Expr, Box<Statement>, Option<Box<Statement>>),
+    End,
+}
+
 #[derive(Debug, Clone)]
 enum Type {
     Number(f64),
@@ -147,13 +282,13 @@ enum Expr {
 }
 
 impl Expr {
-    fn eval(&self, scope: &mut HashMap<String, Type>) -> Option<Type> {
+    fn eval(&self, scope: &mut BTreeMap<String, Type>) -> Option<Type> {
         Some(match self {
             Expr::Infix(infix) => (*infix).eval(scope)?,
             Expr::Value(value) => {
                 if let Type::Symbol(name) = value {
-                    if let Some(refer) = scope.get(name.as_str()).cloned() {
-                        refer
+                    if let Some(refer) = scope.get(name.as_str()) {
+                        refer.clone()
                     } else {
                         value.clone()
                     }
@@ -190,7 +325,7 @@ enum Operator {
 }
 
 impl Infix {
-    fn eval(&self, scope: &mut HashMap<String, Type>) -> Option<Type> {
+    fn eval(&self, scope: &mut BTreeMap<String, Type>) -> Option<Type> {
         let left = self.values.0.eval(scope);
         let right = self.values.1.eval(scope);
 
