@@ -29,6 +29,8 @@ fn main() {
                 }
                 engine.run_program(ast);
             }
+        } else {
+            eprintln!("Error! the file can't be opened")
         }
     } else {
         repl(cli.debug);
