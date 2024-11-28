@@ -3,6 +3,7 @@ use rustyline::DefaultEditor;
 use std::{collections::BTreeMap, fs::read_to_string};
 
 const VERSION: &str = "1.0.0";
+const SPACE: [char; 5] = [' ', '　', '\n', '\t', '\r'];
 
 #[derive(Parser, Debug)]
 #[command(name = "idol", version = VERSION, about = "Goal-directed evaluation programming language inspired by Icon")]
@@ -64,7 +65,7 @@ fn repl(debug: bool) {
 }
 
 fn parse_expr(soruce: String) -> Option<Expr> {
-    let token_list: Vec<String> = tokenize_expr(soruce, vec![' ', '　', '\n', '\t', '\r'])?;
+    let token_list: Vec<String> = tokenize_expr(soruce, SPACE.to_vec())?;
     let token = token_list.last()?.trim().to_string();
     let token = if let Ok(n) = token.parse::<f64>() {
         Expr::Value(Type::Number(n))
@@ -218,7 +219,7 @@ fn parse_opecode(code: String) -> Option<Statement> {
         Statement::Print(parse_expr(code["print".len()..].to_string())?)
     } else if code.starts_with("if") {
         let code = code["if".len()..].to_string();
-        let code = tokenize_expr(code, vec![' ', '　', '\n', '\t', '\r'])?;
+        let code = tokenize_expr(code, SPACE.to_vec())?;
         if code.get(2).and_then(|x| Some(x == "else")).unwrap_or(false) {
             Statement::If(
                 parse_expr(code.get(0)?.to_string())?,
@@ -234,24 +235,20 @@ fn parse_opecode(code: String) -> Option<Statement> {
         }
     } else if code.starts_with("while") {
         let code = code["while".len()..].to_string();
-        let code = tokenize_expr(code, vec![' ', '　', '\n', '\t', '\r'])?;
+        let code = tokenize_expr(code, SPACE.to_vec())?;
         Statement::While(
             parse_expr(code.get(0)?.to_string())?,
             parse_expr(code.get(1)?.to_string())?,
         )
     } else if code.starts_with("func") {
         let code = code["func".len()..].to_string();
-        let code = tokenize_expr(code, vec![' ', '　', '\n', '\t', '\r'])?;
+        let code = tokenize_expr(code, SPACE.to_vec())?;
+        let header = code.get(0)?.trim().to_string();
+        let header = tokenize_expr(header[1..header.len() - 1].to_string(), SPACE.to_vec())?;
         Statement::Define(
-            code.get(0)?.to_string(),
-            {
-                let args = code.get(1)?.to_string();
-                args[1..args.len() - 1]
-                    .split(",")
-                    .map(|i| i.trim().to_string())
-                    .collect()
-            },
-            parse_expr(code.get(2)?.to_string())?,
+            header.get(0)?.to_string(),
+            header.get(1..)?.to_vec(),
+            parse_expr(code.get(1)?.to_string())?,
         )
     } else if code.starts_with("let") {
         let code = code["let".len()..].to_string();
@@ -261,7 +258,7 @@ fn parse_opecode(code: String) -> Option<Statement> {
         let code = code["expr".len()..].to_string();
         Statement::Expr(parse_expr(code)?)
     } else {
-        let code = tokenize_expr(code.to_string(), vec![' ', '　', '\n', '\t', '\r'])?;
+        let code = tokenize_expr(code.to_string(), SPACE.to_vec())?;
         Statement::Call(
             parse_expr(code.get(0)?.to_string())?,
             code.get(1..)?
