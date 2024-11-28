@@ -12,7 +12,10 @@ fn main() {
         }
 
         let ast = parse_program(code.clone()).unwrap();
-        println!("{}", engine.run_program(ast).unwrap().get_symbol());
+        println!(
+            "{ast:#?} {}",
+            engine.run_program(ast.clone()).unwrap().get_symbol()
+        );
     }
 }
 
@@ -186,8 +189,8 @@ fn parse_opecode(code: String) -> Option<Statement> {
         Statement::Define(
             code.get(0)?.to_string(),
             {
-                let args = code.get(2)?.to_string();
-                args[1..args.len() - 2]
+                let args = code.get(1)?.to_string();
+                args[1..args.len() - 1]
                     .split(",")
                     .map(String::from)
                     .collect()
