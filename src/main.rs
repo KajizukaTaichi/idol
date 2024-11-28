@@ -392,13 +392,39 @@ impl Infix {
         let right = self.values.1.eval(engine);
 
         Some(match self.operator {
-            Operator::Add => Type::Number(left?.get_number() + right?.get_number()),
-            Operator::Sub => Type::Number(left?.get_number() - right?.get_number()),
-            Operator::Mul => Type::Number(left?.get_number() * right?.get_number()),
+            Operator::Add => {
+                if let (Some(Type::Number(left)), Some(Type::Number(right))) = (&left, &right) {
+                    Type::Number(left + right)
+                } else if let (Some(Type::String(left)), Some(Type::String(right))) = (left, right)
+                {
+                    Type::String(left + &right)
+                } else {
+                    return None;
+                }
+            }
+            Operator::Sub => {
+                if let (Some(Type::Number(left)), Some(Type::Number(right))) = (&left, &right) {
+                    Type::Number(left - right)
+                } else if let (Some(Type::String(left)), Some(Type::String(right))) = (left, right)
+                {
+                    Type::String(left.replace(&right, ""))
+                } else {
+                    return None;
+                }
+            }
+            Operator::Mul => {
+                if let (Some(Type::Number(left)), Some(Type::Number(right))) = (&left, &right) {
+                    Type::Number(left * right)
+                } else if let (Some(Type::String(left)), Some(Type::Number(right))) = (left, right)
+                {
+                    Type::String(left.repeat(right as usize))
+                } else {
+                    return None;
+                }
+            }
             Operator::Div => Type::Number(left?.get_number() / right?.get_number()),
             Operator::Mod => Type::Number(left?.get_number() % right?.get_number()),
             Operator::Pow => Type::Number(left?.get_number().powf(right?.get_number())),
-
             Operator::Equal => {
                 if left?.get_symbol() == right.clone()?.get_symbol() {
                     right?
