@@ -197,7 +197,7 @@ struct Engine {
 impl Engine {
     fn new() -> Engine {
         Engine {
-            scope: BTreeMap::new(),
+            scope: BTreeMap::from([("new-line".to_string(), Type::String("\n".to_string()))]),
         }
     }
 
@@ -213,7 +213,7 @@ impl Engine {
         match code {
             Statement::Print(expr) => {
                 let val = expr.eval(self)?.get_string();
-                println!("{val}");
+                print!("{val}");
                 Some(Type::Null)
             }
             Statement::Let(name, expr) => {
