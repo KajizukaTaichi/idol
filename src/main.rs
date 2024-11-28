@@ -86,7 +86,7 @@ fn parse_expr(soruce: String) -> Option<Expr> {
         };
         let (args, body) = token.split_once("->")?;
         Expr::Value(Type::Function(
-            args.split(",").map(|i| i.trim().to_string()).collect(),
+            args.split(SPACE).map(|i| i.trim().to_string()).collect(),
             Box::new(parse_expr(body.to_string())?),
         ))
     } else if token.starts_with('{') && token.ends_with('}') {
