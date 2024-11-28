@@ -318,7 +318,7 @@ impl Engine {
     fn run_opecode(&mut self, code: Statement) -> Option<Type> {
         match code {
             Statement::Print(expr) => {
-                print!("{}", expr.eval(self)?.get_string());
+                println!("{}", expr.eval(self)?.get_string());
                 Some(Type::Null)
             }
             Statement::Input(expr) => {
