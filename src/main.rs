@@ -253,7 +253,7 @@ fn parse_opecode(code: String) -> Option<Statement> {
     } else {
         let code = tokenize_expr(code.to_string(), vec![' ', '　', '\n', '\t', '\r'])?;
         Statement::Call(
-            code.get(0)?.to_string(),
+            parse_expr(code.get(0)?.to_string())?,
             code.get(1..)?
                 .to_vec()
                 .iter()
@@ -318,8 +318,8 @@ impl Engine {
                 self.scope.insert(name, func_obj.clone());
                 Some(func_obj)
             }
-            Statement::Call(name, value_args) => {
-                if let Some(Type::Function(func_args, code)) = self.scope.clone().get(&name) {
+            Statement::Call(func, value_args) => {
+                if let Some(Type::Function(func_args, code)) = func.eval(self) {
                     for (arg, val) in func_args.iter().zip(value_args) {
                         let val = val.eval(self)?;
                         self.scope.insert(arg.to_string(), val);
@@ -343,7 +343,7 @@ enum Statement {
     If(Expr, Expr, Option<Expr>),
     While(Expr, Expr),
     Define(String, Vec<String>, Expr),
-    Call(String, Vec<Expr>),
+    Call(Expr, Vec<Expr>),
     Expr(Expr),
 }
 
