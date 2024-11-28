@@ -52,11 +52,11 @@ fn repl(debug: bool) {
                 rl.add_history_entry(&code).unwrap_or_default();
                 if let Some(ast) = parse_program(code) {
                     if debug {
-                        println!("{ast:?}")
+                        println!("AST = {ast:?}")
                     }
                     if let Some(result) = engine.run_program(ast) {
                         if debug {
-                            println!("{:?}", result);
+                            println!("Result = {:?}", result);
                         } else {
                             println!("{}", result.get_symbol());
                         }
