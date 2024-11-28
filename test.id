@@ -1,9 +1,12 @@
 let i = 1;
 while (1 <= i <= 100) {
     print {
-        if (i % 15 == 0) "FizzBuzz" else {
-            if (i % 3 == 0) "Fizz" else {
-                if (i % 5 == 0) "Buzz" else i
+        if (i % 15 == 0) "FizzBuzz"
+        else {
+            if (i % 3 == 0) "Fizz"
+            else {
+                if (i % 5 == 0) "Buzz"
+                else i
             }
         }
     };
