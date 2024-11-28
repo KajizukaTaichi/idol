@@ -217,6 +217,8 @@ fn parse_opecode(code: String) -> Option<Statement> {
     let code = code.trim();
     Some(if code.starts_with("print") {
         Statement::Print(parse_expr(code["print".len()..].to_string())?)
+    } else if code.starts_with("input") {
+        Statement::Input(parse_expr(code["input".len()..].to_string())?)
     } else if code.starts_with("if") {
         let code = code["if".len()..].to_string();
         let code = tokenize_expr(code, SPACE.to_vec())?;
@@ -254,9 +256,8 @@ fn parse_opecode(code: String) -> Option<Statement> {
         let code = code["let".len()..].to_string();
         let (name, code) = code.split_once("=")?;
         Statement::Let(name.trim().to_string(), parse_expr(code.to_string())?)
-    } else if code.starts_with("expr") {
-        let code = code["expr".len()..].to_string();
-        Statement::Expr(parse_expr(code)?)
+    } else if code == "fault" {
+        Statement::Fault
     } else {
         let code = tokenize_expr(code.to_string(), SPACE.to_vec())?;
         Statement::Call(
@@ -268,6 +269,20 @@ fn parse_opecode(code: String) -> Option<Statement> {
                 .collect(),
         )
     })
+}
+
+type Scope = BTreeMap<String, Type>;
+type Program = Vec<Statement>;
+#[derive(Debug, Clone)]
+enum Statement {
+    Print(Expr),
+    Input(Expr),
+    Let(String, Expr),
+    If(Expr, Expr, Option<Expr>),
+    While(Expr, Expr),
+    Define(String, Vec<String>, Expr),
+    Call(Expr, Vec<Expr>),
+    Fault,
 }
 
 #[derive(Debug, Clone)]
@@ -296,6 +311,14 @@ impl Engine {
                 let val = expr.eval(self)?.get_string();
                 print!("{val}");
                 Some(Type::Null)
+            }
+            Statement::Input(expr) => {
+                let prompt = expr.eval(self)?.get_string();
+                Some(Type::String(
+                    DefaultEditor::new()
+                        .and_then(|mut rl| rl.readline(&prompt))
+                        .unwrap_or_default(),
+                ))
             }
             Statement::Let(name, expr) => {
                 let val = expr.eval(&mut self.clone())?;
@@ -338,22 +361,9 @@ impl Engine {
                     return None;
                 }
             }
-            Statement::Expr(expr) => expr.eval(self),
+            Statement::Fault => None,
         }
     }
-}
-
-type Scope = BTreeMap<String, Type>;
-type Program = Vec<Statement>;
-#[derive(Debug, Clone)]
-enum Statement {
-    Print(Expr),
-    Let(String, Expr),
-    If(Expr, Expr, Option<Expr>),
-    While(Expr, Expr),
-    Define(String, Vec<String>, Expr),
-    Call(Expr, Vec<Expr>),
-    Expr(Expr),
 }
 
 #[derive(Debug, Clone)]
