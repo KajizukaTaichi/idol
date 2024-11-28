@@ -66,6 +66,18 @@ fn parse_expr(soruce: String) -> Option<Expr> {
             token
         };
         parse_expr(token)?
+    } else if token.starts_with("lambda(") && token.ends_with(')') {
+        let token = {
+            let mut token = token.clone();
+            token = token.replacen("lambda(", "", 1);
+            token.remove(token.len() - 1);
+            token
+        };
+        let (args, body) = token.split_once("->")?;
+        Expr::Value(Type::Function(
+            args.split(",").map(|i| i.trim().to_string()).collect(),
+            Box::new(parse_expr(body.to_string())?),
+        ))
     } else if token.starts_with('{') && token.ends_with('}') {
         let token = {
             let mut token = token.clone();
