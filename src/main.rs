@@ -12,10 +12,7 @@ fn main() {
         }
 
         let ast = parse_program(code.clone()).unwrap();
-        println!(
-            "{ast:#?} {}",
-            engine.run_program(ast.clone()).unwrap().get_symbol()
-        );
+        println!("{}", engine.run_program(ast).unwrap().get_symbol());
     }
 }
 
