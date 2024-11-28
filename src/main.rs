@@ -226,7 +226,7 @@ fn parse_opecode(code: String) -> Option<Statement> {
                 let args = code.get(1)?.to_string();
                 args[1..args.len() - 1]
                     .split(",")
-                    .map(String::from)
+                    .map(|i| i.trim().to_string())
                     .collect()
             },
             parse_expr(code.get(2)?.to_string())?,
