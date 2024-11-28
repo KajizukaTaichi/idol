@@ -358,14 +358,15 @@ impl Engine {
                 Some(func_obj)
             }
             Statement::Call(func, value_args) => {
-                if let Some(Type::Function(func_args, code)) = func.eval(self) {
+                let func = func.eval(self);
+                if let Some(Type::Function(func_args, code)) = func {
                     for (arg, val) in func_args.iter().zip(value_args) {
                         let val = val.eval(self)?;
                         self.scope.insert(arg.to_string(), val);
                     }
                     code.eval(self)
                 } else {
-                    return None;
+                    func
                 }
             }
             Statement::Fault => None,
