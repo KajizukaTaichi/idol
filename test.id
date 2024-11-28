@@ -1,0 +1,4 @@
+let i = 0
+a: print i
+let i = i + 1
+if 0 < i < 10 then goto a
