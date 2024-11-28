@@ -1,4 +1,4 @@
-func { fizzbuzz n }  {
+func ( fizzbuzz n ) {
     if (n % 15 == 0) "FizzBuzz"
     else {
         if (n % 3 == 0) "Fizz"
