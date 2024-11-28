@@ -58,7 +58,10 @@ fn repl(debug: bool) {
                         if debug {
                             println!("Result = {:?}", result);
                         } else {
-                            println!("{}", result.get_symbol());
+                            if let Type::Null = result {
+                            } else {
+                                println!("{}", result.get_symbol());
+                            }
                         }
                     }
                 }
