@@ -63,7 +63,11 @@ fn repl(debug: bool) {
                                 println!("{}", result.get_symbol());
                             }
                         }
+                    } else {
+                        println!("Fault")
                     }
+                } else {
+                    println!("Error");
                 }
             }
             Err(err) => println!("{err:?}"),
@@ -170,7 +174,6 @@ fn tokenize_expr(input: String, delimiter: Vec<char>) -> Option<Vec<String>> {
                 if in_parentheses > 0 {
                     in_parentheses -= 1;
                 } else {
-                    eprintln!("Error! there's duplicate end of the parentheses");
                     return None;
                 }
             }
@@ -194,12 +197,7 @@ fn tokenize_expr(input: String, delimiter: Vec<char>) -> Option<Vec<String>> {
     }
 
     // Syntax error check
-    if in_quote {
-        eprintln!("Error! there's not end of the quote");
-        return None;
-    }
-    if in_parentheses != 0 {
-        eprintln!("Error! there's not end of the parentheses");
+    if in_quote || in_parentheses != 0 {
         return None;
     }
 
@@ -318,8 +316,7 @@ impl Engine {
     fn run_opecode(&mut self, code: Statement) -> Option<Type> {
         match code {
             Statement::Print(expr) => {
-                let val = expr.eval(self)?.get_string();
-                print!("{val}");
+                print!("{}", expr.eval(self)?.get_string());
                 Some(Type::Null)
             }
             Statement::Input(expr) => {
