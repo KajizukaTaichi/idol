@@ -1,18 +1,50 @@
+use clap::Parser;
 use rustyline::DefaultEditor;
-use std::collections::BTreeMap;
+use std::{collections::BTreeMap, fs::read_to_string};
+
+const VERSION: &str = "1.0.0";
+
+#[derive(Parser, Debug)]
+#[command(name = "idol", version=VERSION)]
+struct Cli {
+    #[arg(index = 1)]
+    file: Option<String>,
+}
 
 fn main() {
-    println!("idol 0.1.0");
+    let cli = Cli::parse();
+    let mut engine = Engine::new();
+
+    if let Some(path) = cli.file {
+        if let Ok(code) = read_to_string(path) {
+            if let Some(ast) = parse_program(code) {
+                engine.run_program(ast);
+            }
+        }
+    } else {
+        repl();
+    }
+}
+
+fn repl() {
+    println!("idol {VERSION}");
     let mut engine = Engine::new();
     let mut rl = DefaultEditor::new().unwrap();
     loop {
-        let code = rl.readline("> ").unwrap();
-        if code.is_empty() {
-            continue;
-        }
+        match rl.readline("> ") {
+            Ok(code) => {
+                if code.is_empty() {
+                    continue;
+                }
 
-        let ast = parse_program(code.clone()).unwrap();
-        println!("{}", engine.run_program(ast).unwrap().get_symbol());
+                if let Some(ast) = parse_program(code) {
+                    if let Some(result) = engine.run_program(ast) {
+                        println!("{}", result.get_symbol());
+                    }
+                }
+            }
+            Err(err) => println!("{err:?}"),
+        }
     }
 }
 
