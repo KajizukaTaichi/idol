@@ -1,10 +1,10 @@
-func fizzbuzz (i) {
-    if (i % 15 == 0) "FizzBuzz"
+func fizzbuzz (n) {
+    if (n % 15 == 0) "FizzBuzz"
     else {
-        if (i % 3 == 0) "Fizz"
+        if (n % 3 == 0) "Fizz"
         else {
-            if (i % 5 == 0) "Buzz"
-            else i
+            if (n % 5 == 0) "Buzz"
+            else n
         }
     }
 };
