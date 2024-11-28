@@ -41,7 +41,7 @@ fn repl() {
                     break;
                 }
 
-                rl.add_history_entry(&code);
+                rl.add_history_entry(&code).unwrap_or_default();
                 if let Some(ast) = parse_program(code) {
                     if let Some(result) = engine.run_program(ast) {
                         println!("{}", result.get_symbol());
