@@ -37,6 +37,14 @@ fn parse_expr(soruce: String) -> Option<Expr> {
             token
         };
         Expr::Block(parse_program(token)?)
+    } else if token.starts_with('"') && token.ends_with('"') {
+        let token = {
+            let mut token = token.clone();
+            token.remove(0);
+            token.remove(token.len() - 1);
+            token
+        };
+        Expr::Value(Type::String(token))
     } else {
         Expr::Value(Type::Symbol(token))
     };
@@ -137,6 +145,9 @@ fn parse_program(source: String) -> Option<Program> {
     let mut program: Program = Vec::new();
     for line in tokenize_expr(source, vec![';'])? {
         let line = line.trim().to_string();
+        if line.is_empty() {
+            continue;
+        }
         program.push(parse_opecode(line.trim().to_string())?);
     }
     Some(program)
@@ -203,7 +214,7 @@ impl Engine {
     fn run_opecode(&mut self, code: Statement) -> Option<Type> {
         match code {
             Statement::Print(expr) => {
-                let val = expr.eval(self)?.get_symbol();
+                let val = expr.eval(self)?.get_string();
                 println!("{val}");
                 Some(Type::Null)
             }
@@ -251,6 +262,7 @@ enum Statement {
 #[derive(Debug, Clone)]
 enum Type {
     Number(f64),
+    String(String),
     Symbol(String),
     Null,
 }
@@ -259,7 +271,7 @@ impl Type {
     fn get_number(&self) -> f64 {
         match self {
             Type::Number(n) => n.to_owned(),
-            Type::Symbol(s) => s.parse().unwrap_or(0.0),
+            Type::Symbol(s) | Type::String(s) => s.parse().unwrap_or(0.0),
             Type::Null => 0.0,
         }
     }
@@ -267,8 +279,17 @@ impl Type {
     fn get_symbol(&self) -> String {
         match self {
             Type::Symbol(s) => s.to_string(),
+            Type::String(s) => format!("\"{s}\""),
             Type::Number(n) => n.to_string(),
             Type::Null => "null".to_string(),
+        }
+    }
+
+    fn get_string(&self) -> String {
+        match self {
+            Type::Symbol(s) | Type::String(s) => s.to_string(),
+            Type::Number(n) => n.to_string(),
+            Type::Null => String::new(),
         }
     }
 }
