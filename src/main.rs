@@ -5,8 +5,9 @@ use std::{collections::BTreeMap, fs::read_to_string};
 const VERSION: &str = "1.0.0";
 
 #[derive(Parser, Debug)]
-#[command(name = "idol", version=VERSION)]
+#[command(name = "idol", version = VERSION, about = "Goal-directed evaluation programming language inspired by Icon")]
 struct Cli {
+    /// Script file to be running
     #[arg(index = 1)]
     file: Option<String>,
 }
@@ -33,8 +34,11 @@ fn repl() {
     loop {
         match rl.readline("> ") {
             Ok(code) => {
+                let code = code.trim().to_string();
                 if code.is_empty() {
                     continue;
+                } else if code == ":q" {
+                    break;
                 }
 
                 if let Some(ast) = parse_program(code) {
