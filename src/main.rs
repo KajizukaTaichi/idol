@@ -184,8 +184,6 @@ fn parse_opecode(code: String) -> Option<Statement> {
         let code = code["let".len()..].to_string();
         let (name, code) = code.split_once("=")?;
         Statement::Let(name.trim().to_string(), parse_expr(code.to_string())?)
-    } else if code == "end" {
-        Statement::End
     } else {
         Statement::Expr(parse_expr(code.to_string())?)
     })
@@ -242,7 +240,6 @@ impl Engine {
                 Some(result)
             }
             Statement::Expr(expr) => expr.eval(self),
-            Statement::End => std::process::exit(0),
         }
     }
 }
@@ -256,7 +253,6 @@ enum Statement {
     If(Expr, Expr, Option<Expr>),
     While(Expr, Expr),
     Expr(Expr),
-    End,
 }
 
 #[derive(Debug, Clone)]
