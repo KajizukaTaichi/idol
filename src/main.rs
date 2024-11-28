@@ -10,6 +10,10 @@ struct Cli {
     /// Script file to be running
     #[arg(index = 1)]
     file: Option<String>,
+
+    /// Enable debug mode to show AST
+    #[arg(long, short)]
+    debug: bool,
 }
 
 fn main() {
@@ -19,15 +23,18 @@ fn main() {
     if let Some(path) = cli.file {
         if let Ok(code) = read_to_string(path) {
             if let Some(ast) = parse_program(code) {
+                if cli.debug {
+                    println!("{ast:?}")
+                }
                 engine.run_program(ast);
             }
         }
     } else {
-        repl();
+        repl(cli.debug);
     }
 }
 
-fn repl() {
+fn repl(debug: bool) {
     println!("idol {VERSION}");
     let mut engine = Engine::new();
     let mut rl = DefaultEditor::new().unwrap();
@@ -43,6 +50,9 @@ fn repl() {
 
                 rl.add_history_entry(&code).unwrap_or_default();
                 if let Some(ast) = parse_program(code) {
+                    if debug {
+                        println!("{ast:?}")
+                    }
                     if let Some(result) = engine.run_program(ast) {
                         println!("{}", result.get_symbol());
                     }
