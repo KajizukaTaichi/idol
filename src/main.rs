@@ -306,7 +306,8 @@ impl Engine {
                 Some(val)
             }
             Statement::If(expr, then, r#else) => {
-                if expr.eval(self).is_some() {
+                if let Some(it) = expr.eval(self) {
+                    self.scope.insert("it".to_string(), it);
                     then.eval(self)
                 } else {
                     if let Some(r#else) = r#else {
@@ -318,7 +319,8 @@ impl Engine {
             }
             Statement::While(expr, code) => {
                 let mut result = Type::Null;
-                while expr.eval(self).is_some() {
+                while let Some(it) = expr.eval(self) {
+                    self.scope.insert("it".to_string(), it);
                     result = code.eval(self)?;
                 }
                 Some(result)
