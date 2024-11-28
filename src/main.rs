@@ -55,7 +55,11 @@ fn repl(debug: bool) {
                         println!("{ast:?}")
                     }
                     if let Some(result) = engine.run_program(ast) {
-                        println!("{}", result.get_symbol());
+                        if debug {
+                            println!("{:?}", result);
+                        } else {
+                            println!("{}", result.get_symbol());
+                        }
                     }
                 }
             }
