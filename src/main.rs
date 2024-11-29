@@ -90,21 +90,6 @@ fn parse_expr(soruce: String) -> Option<Expr> {
             token
         };
         parse_expr(token)?
-    } else if token.starts_with("lambda(") && token.ends_with(')') {
-        let token = {
-            let mut token = token.clone();
-            token = token.replacen("lambda(", "", 1);
-            token.remove(token.len() - 1);
-            token
-        };
-        let (args, body) = token.split_once("->")?;
-        Expr::Value(Type::Function(
-            args.trim()
-                .split(SPACE)
-                .map(|i| i.trim().to_string())
-                .collect(),
-            Box::new(parse_expr(body.to_string())?),
-        ))
     } else if token.starts_with('{') && token.ends_with('}') {
         let token = {
             let mut token = token.clone();
@@ -262,6 +247,12 @@ fn parse_opecode(code: String) -> Option<Statement> {
             header.get(1..)?.to_vec(),
             parse_expr(code.get(1)?.to_string())?,
         )
+    } else if code.starts_with("lambda") {
+        let code = code["lambda".len()..].to_string();
+        let code = tokenize_expr(code, SPACE.to_vec())?;
+        let header = code.get(0)?.trim().to_string();
+        let header = tokenize_expr(header[1..header.len() - 1].to_string(), SPACE.to_vec())?;
+        Statement::Lambda(header, parse_expr(code.get(1)?.to_string())?)
     } else if code.starts_with("let") {
         let code = code["let".len()..].to_string();
         let (name, code) = code.split_once("=")?;
@@ -290,6 +281,7 @@ enum Statement {
     Let(String, Expr),
     If(Expr, Expr, Option<Expr>),
     While(Expr, Expr),
+    Lambda(Vec<String>, Expr),
     Define(String, Vec<String>, Expr),
     Call(Expr, Vec<Expr>),
     Fault,
@@ -353,6 +345,10 @@ impl Engine {
                     result = code.eval(self)?;
                 }
                 Some(result)
+            }
+            Statement::Lambda(args, code) => {
+                let func_obj = Type::Function(args, Box::new(code));
+                Some(func_obj)
             }
             Statement::Define(name, args, code) => {
                 let func_obj = Type::Function(args, Box::new(code));
