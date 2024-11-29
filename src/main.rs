@@ -341,6 +341,7 @@ impl Engine {
                     }
                 }
                 "text" => Some(Type::Text(expr.eval(self)?.get_text())),
+                "symbol" => Some(Type::Text(expr.eval(self)?.get_symbol())),
                 _ => None,
             },
             Statement::Let(name, expr) => {
