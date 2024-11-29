@@ -220,7 +220,7 @@ fn parse_opecode(code: String) -> Option<Statement> {
             let splited = code.split("to").collect::<Vec<&str>>();
             (
                 parse_expr(splited.get(..splited.len() - 1)?.to_vec().join("to"))?,
-                splited.last()?.to_string(),
+                splited.last()?.trim().to_string(),
             )
         };
         Statement::Cast(expr, r#type)
