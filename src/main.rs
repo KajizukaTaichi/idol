@@ -105,7 +105,7 @@ fn parse_expr(soruce: String) -> Option<Expr> {
             token.remove(token.len() - 1);
             token
         };
-        Expr::Value(Type::String(token))
+        Expr::Value(Type::Text(token))
     } else {
         Expr::Value(Type::Symbol(token))
     };
@@ -214,6 +214,16 @@ fn parse_opecode(code: String) -> Option<Statement> {
         Statement::Print(parse_expr(code["print".len()..].to_string())?)
     } else if code.starts_with("input") {
         Statement::Input(parse_expr(code["input".len()..].to_string())?)
+    } else if code.starts_with("cast") {
+        let code = code["cast".len()..].to_string();
+        let (expr, r#type) = {
+            let splited = code.split("to").collect::<Vec<&str>>();
+            (
+                parse_expr(splited.get(..splited.len() - 1)?.to_vec().join("to"))?,
+                splited.last()?.to_string(),
+            )
+        };
+        Statement::Cast(expr, r#type)
     } else if code.starts_with("if") {
         let code = code["if".len()..].to_string();
         let code = tokenize_expr(code, SPACE.to_vec())?;
@@ -278,6 +288,7 @@ type Program = Vec<Statement>;
 enum Statement {
     Print(Expr),
     Input(Expr),
+    Cast(Expr, String),
     Let(String, Expr),
     If(Expr, Expr, Option<Expr>),
     While(Expr, Expr),
@@ -295,7 +306,7 @@ struct Engine {
 impl Engine {
     fn new() -> Engine {
         Engine {
-            scope: BTreeMap::from([("new-line".to_string(), Type::String("\n".to_string()))]),
+            scope: BTreeMap::from([("new-line".to_string(), Type::Text("\n".to_string()))]),
         }
     }
 
@@ -310,17 +321,28 @@ impl Engine {
     fn run_opecode(&mut self, code: Statement) -> Option<Type> {
         match code {
             Statement::Print(expr) => {
-                println!("{}", expr.eval(self)?.get_string());
+                print!("{}", expr.eval(self)?.get_text());
                 Some(Type::Null)
             }
             Statement::Input(expr) => {
-                let prompt = expr.eval(self)?.get_string();
-                Some(Type::String(
+                let prompt = expr.eval(self)?.get_text();
+                Some(Type::Text(
                     DefaultEditor::new()
                         .and_then(|mut rl| rl.readline(&prompt))
                         .unwrap_or_default(),
                 ))
             }
+            Statement::Cast(expr, to) => match to.as_str() {
+                "number" => {
+                    if let Ok(n) = expr.eval(self)?.get_text().parse() {
+                        Some(Type::Number(n))
+                    } else {
+                        None
+                    }
+                }
+                "text" => Some(Type::Text(expr.eval(self)?.get_text())),
+                _ => None,
+            },
             Statement::Let(name, expr) => {
                 let val = expr.eval(&mut self.clone())?;
                 self.scope.insert(name, val.clone());
@@ -380,7 +402,7 @@ impl Engine {
 enum Type {
     Number(f64),
     Symbol(String),
-    String(String),
+    Text(String),
     Function(Vec<String>, Box<Expr>),
     Null,
 }
@@ -389,7 +411,7 @@ impl Type {
     fn get_number(&self) -> f64 {
         match self {
             Type::Number(n) => n.to_owned(),
-            Type::Symbol(s) | Type::String(s) => s.parse().unwrap_or(0.0),
+            Type::Symbol(s) | Type::Text(s) => s.parse().unwrap_or(0.0),
             Type::Null | Type::Function(_, _) => 0.0,
         }
     }
@@ -397,7 +419,7 @@ impl Type {
     fn get_symbol(&self) -> String {
         match self {
             Type::Symbol(s) => s.to_string(),
-            Type::String(s) => format!("\"{s}\""),
+            Type::Text(s) => format!("\"{s}\""),
             Type::Number(n) => n.to_string(),
             Type::Null => "null".to_string(),
             Type::Function(args, _) => {
@@ -406,10 +428,10 @@ impl Type {
         }
     }
 
-    fn get_string(&self) -> String {
+    fn get_text(&self) -> String {
         match self {
-            Type::Symbol(s) | Type::String(s) => s.to_string(),
             Type::Number(n) => n.to_string(),
+            Type::Symbol(s) | Type::Text(s) => s.to_string(),
             Type::Null | Type::Function(_, _) => String::new(),
         }
     }
@@ -475,9 +497,8 @@ impl Infix {
             Operator::Add => {
                 if let (Some(Type::Number(left)), Some(Type::Number(right))) = (&left, &right) {
                     Type::Number(left + right)
-                } else if let (Some(Type::String(left)), Some(Type::String(right))) = (left, right)
-                {
-                    Type::String(left + &right)
+                } else if let (Some(Type::Text(left)), Some(Type::Text(right))) = (left, right) {
+                    Type::Text(left + &right)
                 } else {
                     return None;
                 }
@@ -485,9 +506,8 @@ impl Infix {
             Operator::Sub => {
                 if let (Some(Type::Number(left)), Some(Type::Number(right))) = (&left, &right) {
                     Type::Number(left - right)
-                } else if let (Some(Type::String(left)), Some(Type::String(right))) = (left, right)
-                {
-                    Type::String(left.replace(&right, ""))
+                } else if let (Some(Type::Text(left)), Some(Type::Text(right))) = (left, right) {
+                    Type::Text(left.replace(&right, ""))
                 } else {
                     return None;
                 }
@@ -495,9 +515,8 @@ impl Infix {
             Operator::Mul => {
                 if let (Some(Type::Number(left)), Some(Type::Number(right))) = (&left, &right) {
                     Type::Number(left * right)
-                } else if let (Some(Type::String(left)), Some(Type::Number(right))) = (left, right)
-                {
-                    Type::String(left.repeat(right as usize))
+                } else if let (Some(Type::Text(left)), Some(Type::Number(right))) = (left, right) {
+                    Type::Text(left.repeat(right as usize))
                 } else {
                     return None;
                 }
