@@ -4,13 +4,13 @@ func ( fizzbuzz n ) {
         if (n % 3 == 0) "Fizz"
         else {
             if (n % 5 == 0) "Buzz"
-            else n
+            else { to-num n }
         }
     }
 };
 
 let i = 1;
 while (1 <= i <= 100) {
-    print { fizzbuzz i };
+    print { fizzbuzz i } + new-line;
     let i = i + 1;
 }
