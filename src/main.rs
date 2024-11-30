@@ -210,12 +210,22 @@ fn parse_program(source: String) -> Option<Program> {
 
 fn parse_opecode(code: String) -> Option<Statement> {
     let code = code.trim();
-    Some(if code.starts_with("value") {
-        Statement::Value(parse_expr(code["value".len()..].to_string())?)
+    if code.starts_with("(") && code.ends_with(")") {
+        let code = {
+            let mut code = code.to_string();
+            code.remove(0);
+            code.remove(code.len() - 1);
+            code
+        };
+        Some(Statement::Value(parse_expr(code)?))
     } else if code.starts_with("print") {
-        Statement::Print(parse_expr(code["print".len()..].to_string())?)
+        Some(Statement::Print(parse_expr(
+            code["print".len()..].to_string(),
+        )?))
     } else if code.starts_with("input") {
-        Statement::Input(parse_expr(code["input".len()..].to_string())?)
+        Some(Statement::Input(parse_expr(
+            code["input".len()..].to_string(),
+        )?))
     } else if code.starts_with("cast") {
         let code = code["cast".len()..].to_string();
         let (expr, r#type) = {
@@ -225,63 +235,69 @@ fn parse_opecode(code: String) -> Option<Statement> {
                 splited.last()?.trim().to_string(),
             )
         };
-        Statement::Cast(expr, r#type)
+        Some(Statement::Cast(expr, r#type))
     } else if code.starts_with("if") {
         let code = code["if".len()..].to_string();
         let code = tokenize_expr(code, SPACE.to_vec())?;
         if code.get(2).and_then(|x| Some(x == "else")).unwrap_or(false) {
-            Statement::If(
+            Some(Statement::If(
                 parse_expr(code.get(0)?.to_string())?,
                 parse_expr(code.get(1)?.to_string())?,
                 Some(parse_expr(code.get(3)?.to_string())?),
-            )
+            ))
         } else {
-            Statement::If(
+            Some(Statement::If(
                 parse_expr(code.get(0)?.to_string())?,
                 parse_expr(code.get(1)?.to_string())?,
                 None,
-            )
+            ))
         }
     } else if code.starts_with("while") {
         let code = code["while".len()..].to_string();
         let code = tokenize_expr(code, SPACE.to_vec())?;
-        Statement::While(
+        Some(Statement::While(
             parse_expr(code.get(0)?.to_string())?,
             parse_expr(code.get(1)?.to_string())?,
-        )
+        ))
     } else if code.starts_with("func") {
         let code = code["func".len()..].to_string();
         let code = tokenize_expr(code, SPACE.to_vec())?;
         let header = code.get(0)?.trim().to_string();
         let header = tokenize_expr(header[1..header.len() - 1].to_string(), SPACE.to_vec())?;
-        Statement::Define(
+        Some(Statement::Define(
             header.get(0)?.to_string(),
             header.get(1..)?.to_vec(),
             parse_expr(code.get(1)?.to_string())?,
-        )
+        ))
     } else if code.starts_with("lambda") {
         let code = code["lambda".len()..].to_string();
         let code = tokenize_expr(code, SPACE.to_vec())?;
         let header = code.get(0)?.trim().to_string();
         let header = tokenize_expr(header[1..header.len() - 1].to_string(), SPACE.to_vec())?;
-        Statement::Lambda(header, parse_expr(code.get(1)?.to_string())?)
+        Some(Statement::Lambda(
+            header,
+            parse_expr(code.get(1)?.to_string())?,
+        ))
     } else if code.starts_with("let") {
         let code = code["let".len()..].to_string();
         let (name, code) = code.split_once("=")?;
-        Statement::Let(name.trim().to_string(), parse_expr(code.to_string())?)
+        Some(Statement::Let(
+            name.trim().to_string(),
+            parse_expr(code.to_string())?,
+        ))
     } else if code == "fault" {
-        Statement::Fault
+        Some(Statement::Fault)
     } else {
         let code = tokenize_expr(code.to_string(), SPACE.to_vec())?;
-        Statement::Call(
+        Some(Statement::Call(
             parse_expr(code.get(0)?.to_string())?,
             code.get(1..)?
                 .to_vec()
                 .iter()
                 .map(|i| parse_expr(i.to_string()).unwrap_or(Expr::Value(Type::Null)))
                 .collect(),
-        )
-    })
+        ))
+    }
 }
 
 type Scope = BTreeMap<String, Type>;
