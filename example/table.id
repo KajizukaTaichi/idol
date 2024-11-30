@@ -1,0 +1,10 @@
+let i = 1;
+while (i <= 9) {
+    let j = 1;
+    while (j <= 9) {
+        print { cast (i * j) to text } + tab;
+        let j = j + 1;
+    };
+    print new-line;
+    let i = i + 1;
+};
