@@ -210,7 +210,9 @@ fn parse_program(source: String) -> Option<Program> {
 
 fn parse_opecode(code: String) -> Option<Statement> {
     let code = code.trim();
-    Some(if code.starts_with("print") {
+    Some(if code.starts_with("value") {
+        Statement::Value(parse_expr(code["value".len()..].to_string())?)
+    } else if code.starts_with("print") {
         Statement::Print(parse_expr(code["print".len()..].to_string())?)
     } else if code.starts_with("input") {
         Statement::Input(parse_expr(code["input".len()..].to_string())?)
@@ -286,6 +288,7 @@ type Scope = BTreeMap<String, Type>;
 type Program = Vec<Statement>;
 #[derive(Debug, Clone)]
 enum Statement {
+    Value(Expr),
     Print(Expr),
     Input(Expr),
     Cast(Expr, String),
@@ -320,6 +323,7 @@ impl Engine {
 
     fn run_opecode(&mut self, code: Statement) -> Option<Type> {
         match code {
+            Statement::Value(expr) => expr.eval(self),
             Statement::Print(expr) => {
                 print!("{}", expr.eval(self)?.get_text());
                 Some(Type::Null)
@@ -391,7 +395,7 @@ impl Engine {
                     }
                     code.eval(self)
                 } else {
-                    func
+                    None
                 }
             }
             Statement::Fault => None,
