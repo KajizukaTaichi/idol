@@ -301,6 +301,7 @@ impl Engine {
             Statement::Value(expr) => expr.eval(self),
             Statement::Print(expr) => {
                 print!("{}", expr.eval(self)?.get_text());
+                io::stdout().flush().unwrap();
                 Some(Type::Null)
             }
             Statement::Input(expr) => {
@@ -314,18 +315,15 @@ impl Engine {
                     None
                 }
             }
-            Statement::Cast(expr, to) => match to.eval(self)?.get_text().as_str().trim() {
-                "number" => {
-                    if let Ok(n) = expr.eval(self)?.get_text().parse() {
-                        Some(Type::Number(n))
-                    } else {
-                        None
-                    }
+            Statement::Cast(expr, to) => {
+                let expr = expr.eval(self)?;
+                match to.eval(self)?.get_text().as_str().trim() {
+                    "number" => Some(Type::Number(expr.get_number()?)),
+                    "text" => Some(Type::Text(expr.get_text())),
+                    "symbol" => Some(Type::Symbol(expr.get_symbol())),
+                    _ => None,
                 }
-                "text" => Some(Type::Text(expr.eval(self)?.get_text())),
-                "symbol" => Some(Type::Symbol(expr.eval(self)?.get_symbol())),
-                _ => None,
-            },
+            }
             Statement::Let(name, expr) => {
                 let val = expr.eval(&mut self.clone())?;
                 self.scope.insert(name, val.clone());
@@ -391,11 +389,17 @@ enum Type {
 }
 
 impl Type {
-    fn get_number(&self) -> f64 {
+    fn get_number(&self) -> Option<f64> {
         match self {
-            Type::Number(n) => n.to_owned(),
-            Type::Symbol(s) | Type::Text(s) => s.parse().unwrap_or(0.0),
-            Type::Null | Type::Function(_, _) => 0.0,
+            Type::Number(n) => Some(n.to_owned()),
+            Type::Symbol(s) | Type::Text(s) => {
+                if let Ok(n) = s.trim().parse::<f64>() {
+                    Some(n)
+                } else {
+                    None
+                }
+            }
+            Type::Null | Type::Function(_, _) => None,
         }
     }
 
@@ -405,9 +409,7 @@ impl Type {
             Type::Text(s) => format!("\"{s}\""),
             Type::Number(n) => n.to_string(),
             Type::Null => "null".to_string(),
-            Type::Function(args, _) => {
-                format!("func ( {} )", args.join(SPACE[0].to_string().as_str()))
-            }
+            Type::Function(args, _) => format!("func ( {} )", args.join(" ")),
         }
     }
 
@@ -504,9 +506,9 @@ impl Infix {
                     return None;
                 }
             }
-            Operator::Div => Type::Number(left?.get_number() / right?.get_number()),
-            Operator::Mod => Type::Number(left?.get_number() % right?.get_number()),
-            Operator::Pow => Type::Number(left?.get_number().powf(right?.get_number())),
+            Operator::Div => Type::Number(left?.get_number()? / right?.get_number()?),
+            Operator::Mod => Type::Number(left?.get_number()? % right?.get_number()?),
+            Operator::Pow => Type::Number(left?.get_number()?.powf(right?.get_number()?)),
             Operator::Equal => {
                 if left?.get_symbol() == right.clone()?.get_symbol() {
                     right?
