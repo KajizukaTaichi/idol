@@ -279,6 +279,7 @@ enum Statement {
 #[derive(Debug, Clone)]
 struct Engine {
     scope: Scope,
+    returns: usize,
 }
 
 impl Engine {
@@ -290,6 +291,7 @@ impl Engine {
                 ("double-quote".to_string(), Type::Text("\"".to_string())),
                 ("tab".to_string(), Type::Text("\t".to_string())),
             ]),
+            returns: 0,
         }
     }
 
@@ -297,6 +299,10 @@ impl Engine {
         let mut result = Type::Null;
         for code in program {
             result = self.run_opecode(code)?;
+            if self.returns != 0 {
+                self.returns -= 1;
+                return Some(result);
+            }
         }
         Some(result)
     }
@@ -351,6 +357,10 @@ impl Engine {
                 while let Some(it) = expr.eval(self) {
                     self.scope.insert("it".to_string(), it);
                     result = code.eval(self)?;
+                    if self.returns != 0 {
+                        self.returns -= 1;
+                        return Some(result);
+                    }
                 }
                 Some(result)
             }
