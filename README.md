@@ -2,7 +2,7 @@
 Goal-directed evaluation programming language inspired by Icon
 
 ## Features
-There's key featutes of idol programming language.
+There's I describe key featutes of idol programming language.
 
 Expressions are surrounded with parentheses.
 ```
@@ -17,7 +17,7 @@ Many statements returns value.
 
 ### If Statement
 
-`if` is not simply conditional zbranch statement, it can error handling by the Goal-directed evaluation.
+`if` is not simply conditional branch statement, it can error handling by the Goal-directed evaluation.
 ```
 if { cast { input "> " } to number } (it * 2) else -1
 ```
