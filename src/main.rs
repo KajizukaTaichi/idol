@@ -1,78 +1,36 @@
-use clap::Parser;
-use rustyline::DefaultEditor;
-use std::{collections::BTreeMap, fs::read_to_string};
+use std::{
+    collections::BTreeMap,
+    env::args,
+    fs::read_to_string,
+    io::{self, Write},
+};
 
 const VERSION: &str = "1.0.0";
 const SPACE: [char; 5] = [' ', '　', '\n', '\t', '\r'];
 
-#[derive(Parser, Debug)]
-#[command(name = "idol", version = VERSION, about = "Goal-directed evaluation programming language inspired by Icon")]
-struct Cli {
-    /// Script file to be running
-    #[arg(index = 1)]
-    file: Option<String>,
-
-    /// Enable debug mode to show AST
-    #[arg(long, short)]
-    debug: bool,
-}
-
 fn main() {
-    let cli = Cli::parse();
-    let mut engine = Engine::new();
-
-    if let Some(path) = cli.file {
+    let args: Vec<String> = args().collect();
+    if let Some(path) = args.get(1) {
         if let Ok(code) = read_to_string(path) {
             if let Some(ast) = parse_program(code) {
-                if cli.debug {
-                    println!("{ast:?}")
-                }
+                let mut engine = Engine::new();
                 engine.run_program(ast);
             }
         } else {
             eprintln!("Error! the file can't be opened")
         }
     } else {
-        repl(cli.debug);
-    }
-}
-
-fn repl(debug: bool) {
-    println!("idol {VERSION}");
-    let mut engine = Engine::new();
-    let mut rl = DefaultEditor::new().unwrap();
-    loop {
-        match rl.readline("> ") {
-            Ok(code) => {
-                let code = code.trim().to_string();
-                if code.is_empty() {
-                    continue;
-                } else if code == ":q" {
-                    break;
-                }
-
-                rl.add_history_entry(&code).unwrap_or_default();
-                if let Some(ast) = parse_program(code) {
-                    if debug {
-                        println!("AST = {ast:?}")
-                    }
-                    if let Some(result) = engine.run_program(ast) {
-                        if debug {
-                            println!("Result = {:?}", result);
-                        } else {
-                            if let Type::Null = result {
-                            } else {
-                                println!("{}", result.get_symbol());
-                            }
-                        }
-                    } else {
-                        println!("Fault")
-                    }
-                } else {
-                    println!("Error");
-                }
-            }
-            Err(err) => println!("{err:?}"),
+        let title = format!(
+            r#"
+            idol {VERSION}
+            (c) 2024 梶塚太智 All rights reserved
+            Repository: https://github.com/KajizukaTaichi/idol
+            "#
+        )
+        .trim()
+        .to_string();
+        for line in title.lines() {
+            println!("{}", line.trim())
         }
     }
 }
@@ -346,8 +304,11 @@ impl Engine {
             }
             Statement::Input(expr) => {
                 let prompt = expr.eval(self)?.get_text();
-                if let Ok(enter) = DefaultEditor::new().and_then(|mut rl| rl.readline(&prompt)) {
-                    Some(Type::Text(enter))
+                print!("{prompt}");
+                io::stdout().flush().unwrap();
+                let mut buffer = String::new();
+                if io::stdin().read_line(&mut buffer).is_ok() {
+                    Some(Type::Text(buffer))
                 } else {
                     None
                 }
