@@ -64,12 +64,16 @@ This calls the `inc` function twice on the number `5`, resulting in `7`.
 Here is a more complete example showcasing idol's syntax and features:
 
 ```idol
-func { fizzbuzz n } {
+func ( fizzbuzz n ) {
     if (n % 15 == 0) "FizzBuzz"
-    else if (n % 3 == 0) "Fizz"
-    else if (n % 5 == 0) "Buzz"
-    else (cast n to text)
-}
+    else {
+        if (n % 3 == 0) "Fizz"
+        else {
+            if (n % 5 == 0) "Buzz"
+            else { cast n to text }
+        }
+    }
+};
 
 let i = 1;
 while (1 <= i <= 100) {
