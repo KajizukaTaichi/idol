@@ -4,13 +4,18 @@ func ( fizzbuzz n ) {
         if (n % 3 == 0) "Fizz"
         else {
             if (n % 5 == 0) "Buzz"
-            else { cast n to text }
+            else { fault }
         }
     }
 };
 
 let i = 1;
 while (1 <= i <= 100) {
-    print { fizzbuzz i } + new-line;
+    if { fizzbuzz i } {
+        print it;
+    } else {
+        print i;
+    };
+    print new-line;
     let i = i + 1;
 }
