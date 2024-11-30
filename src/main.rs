@@ -12,7 +12,7 @@ fn main() {
     let args: Vec<String> = args().collect();
     if let Some(path) = args.get(1) {
         if let Ok(code) = read_to_string(path) {
-            if let Some(ast) = Engine::compile(code) {
+            if let Some(ast) = Engine::parse(code) {
                 let mut engine = Engine::new();
                 engine.run(ast);
             }
@@ -106,7 +106,7 @@ impl Engine {
         }
     }
 
-    fn compile(source: String) -> Option<Program> {
+    fn parse(source: String) -> Option<Program> {
         let mut program: Program = Vec::new();
         for line in tokenize(source, vec![';'])? {
             let line = line.trim().to_string();
@@ -401,7 +401,7 @@ impl Expr {
                 token.remove(token.len() - 1);
                 token
             };
-            Expr::Block(Engine::compile(token)?)
+            Expr::Block(Engine::parse(token)?)
         } else if token.starts_with('"') && token.ends_with('"') {
             let token = {
                 let mut token = token.clone();
