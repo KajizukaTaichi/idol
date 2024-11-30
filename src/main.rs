@@ -20,18 +20,9 @@ fn main() {
             eprintln!("Error! the file can't be opened")
         }
     } else {
-        let title = format!(
-            r#"
-            idol {VERSION}
-            (c) 2024 梶塚太智 All rights reserved
-            Repository: https://github.com/KajizukaTaichi/idol
-            "#
-        )
-        .trim()
-        .to_string();
-        for line in title.lines() {
-            println!("{}", line.trim())
-        }
+        println!("idol {VERSION}");
+        println!("(c) 2024 梶塚太智 All rights reserved");
+        println!("Repository: https://github.com/KajizukaTaichi/idol");
     }
 }
 
