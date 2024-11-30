@@ -327,7 +327,7 @@ impl Engine {
             Statement::Let(name, expr) => {
                 let val = expr.eval(&mut self.clone())?;
                 self.scope.insert(name, val.clone());
-                Some(val)
+                Some(Type::Null)
             }
             Statement::If(expr, then, r#else) => {
                 if let Some(it) = expr.eval(self) {
@@ -349,14 +349,11 @@ impl Engine {
                 }
                 Some(result)
             }
-            Statement::Lambda(args, code) => {
-                let func_obj = Type::Function(args, Box::new(code));
-                Some(func_obj)
-            }
+            Statement::Lambda(args, code) => Some(Type::Function(args, Box::new(code))),
             Statement::Define(name, args, code) => {
-                let func_obj = Type::Function(args, Box::new(code));
-                self.scope.insert(name, func_obj.clone());
-                Some(func_obj)
+                self.scope
+                    .insert(name, Type::Function(args, Box::new(code)));
+                Some(Type::Null)
             }
             Statement::Call(func, value_args) => {
                 let func = func.eval(self);
