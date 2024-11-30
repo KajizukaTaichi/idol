@@ -313,49 +313,6 @@ impl Statement {
 }
 
 #[derive(Debug, Clone)]
-enum Type {
-    Number(f64),
-    Symbol(String),
-    Text(String),
-    Function(Vec<String>, Box<Expr>),
-    Null,
-}
-
-impl Type {
-    fn get_number(&self) -> Option<f64> {
-        match self {
-            Type::Number(n) => Some(n.to_owned()),
-            Type::Symbol(s) | Type::Text(s) => {
-                if let Ok(n) = s.trim().parse::<f64>() {
-                    Some(n)
-                } else {
-                    None
-                }
-            }
-            Type::Null | Type::Function(_, _) => None,
-        }
-    }
-
-    fn get_symbol(&self) -> String {
-        match self {
-            Type::Symbol(s) => s.to_string(),
-            Type::Text(s) => format!("\"{s}\""),
-            Type::Number(n) => n.to_string(),
-            Type::Null => "null".to_string(),
-            Type::Function(args, _) => format!("func ( {} )", args.join(" ")),
-        }
-    }
-
-    fn get_text(&self) -> String {
-        match self {
-            Type::Number(n) => n.to_string(),
-            Type::Symbol(s) | Type::Text(s) => s.to_string(),
-            Type::Null | Type::Function(_, _) => String::new(),
-        }
-    }
-}
-
-#[derive(Debug, Clone)]
 enum Expr {
     Infix(Box<Infix>),
     Block(Program),
@@ -567,4 +524,47 @@ enum Operator {
     GreaterThanEq,
     And,
     Or,
+}
+
+#[derive(Debug, Clone)]
+enum Type {
+    Number(f64),
+    Symbol(String),
+    Text(String),
+    Function(Vec<String>, Box<Expr>),
+    Null,
+}
+
+impl Type {
+    fn get_number(&self) -> Option<f64> {
+        match self {
+            Type::Number(n) => Some(n.to_owned()),
+            Type::Symbol(s) | Type::Text(s) => {
+                if let Ok(n) = s.trim().parse::<f64>() {
+                    Some(n)
+                } else {
+                    None
+                }
+            }
+            Type::Null | Type::Function(_, _) => None,
+        }
+    }
+
+    fn get_symbol(&self) -> String {
+        match self {
+            Type::Symbol(s) => s.to_string(),
+            Type::Text(s) => format!("\"{s}\""),
+            Type::Number(n) => n.to_string(),
+            Type::Null => "null".to_string(),
+            Type::Function(args, _) => format!("func ( {} )", args.join(" ")),
+        }
+    }
+
+    fn get_text(&self) -> String {
+        match self {
+            Type::Number(n) => n.to_string(),
+            Type::Symbol(s) | Type::Text(s) => s.to_string(),
+            Type::Null | Type::Function(_, _) => String::new(),
+        }
+    }
 }
