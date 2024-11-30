@@ -186,14 +186,15 @@ fn parse_opecode(code: String) -> Option<Statement> {
         )?))
     } else if code.starts_with("cast") {
         let code = code["cast".len()..].to_string();
-        let (expr, r#type) = {
-            let splited = code.split("to").collect::<Vec<&str>>();
-            (
-                parse_expr(splited.get(..splited.len() - 1)?.to_vec().join("to"))?,
-                splited.last()?.trim().to_string(),
-            )
-        };
-        Some(Statement::Cast(expr, r#type))
+        let code = tokenize_expr(code, SPACE.to_vec())?;
+        if code.get(1)? == "to" {
+            Some(Statement::Cast(
+                parse_expr(code.get(0)?.to_string())?,
+                parse_expr(code.get(2)?.to_string())?,
+            ))
+        } else {
+            None
+        }
     } else if code.starts_with("if") {
         let code = code["if".len()..].to_string();
         let code = tokenize_expr(code, SPACE.to_vec())?;
@@ -265,7 +266,7 @@ enum Statement {
     Value(Expr),
     Print(Expr),
     Input(Expr),
-    Cast(Expr, String),
+    Cast(Expr, Expr),
     Let(String, Expr),
     If(Expr, Expr, Option<Expr>),
     While(Expr, Expr),
@@ -313,7 +314,7 @@ impl Engine {
                     None
                 }
             }
-            Statement::Cast(expr, to) => match to.as_str() {
+            Statement::Cast(expr, to) => match to.eval(self)?.get_text().as_str().trim() {
                 "number" => {
                     if let Ok(n) = expr.eval(self)?.get_text().parse() {
                         Some(Type::Number(n))
