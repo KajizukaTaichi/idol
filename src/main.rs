@@ -575,7 +575,7 @@ impl Infix {
                 }
             }
             Operator::Or => {
-                if left.is_some() || right.is_none() {
+                if left.is_some() || right.is_some() {
                     right.unwrap_or(left?)
                 } else {
                     return None;
