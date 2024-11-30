@@ -346,11 +346,11 @@ impl Engine {
             }
             Statement::Input(expr) => {
                 let prompt = expr.eval(self)?.get_text();
-                Some(Type::Text(
-                    DefaultEditor::new()
-                        .and_then(|mut rl| rl.readline(&prompt))
-                        .unwrap_or_default(),
-                ))
+                if let Ok(enter) = DefaultEditor::new().and_then(|mut rl| rl.readline(&prompt)) {
+                    Some(Type::Text(enter))
+                } else {
+                    None
+                }
             }
             Statement::Cast(expr, to) => match to.as_str() {
                 "number" => {
