@@ -1,4 +1,4 @@
 # idol
 Goal-directed evaluation programming language inspired by Icon 
 
-<img width="722" alt="image" src="https://github.com/user-attachments/assets/6b44d814-b019-48f8-89a7-e39179368279">
+<img width="724" alt="image" src="https://github.com/user-attachments/assets/b091c48a-9ace-4592-9606-af007e036c45">
