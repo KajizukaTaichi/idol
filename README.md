@@ -1,4 +1,38 @@
 # idol
-Goal-directed evaluation programming language inspired by Icon 
+Goal-directed evaluation programming language inspired by Icon
 
-<img width="724" alt="image" src="https://github.com/user-attachments/assets/b091c48a-9ace-4592-9606-af007e036c45">
+## Features
+There's key featutes of idol programming language.
+
+Expressions are surrounded with parentheses.
+```
+(1 + 2 * 3)
+```
+
+Statements are surrounded with braces if it's included in expressions.
+```
+{ cast "123" to number } + 5
+```
+Many statements returns value.
+
+### If Statement
+
+`if` is not simply conditional zbranch statement, it can error handling by the Goal-directed evaluation.
+```
+if { cast { input "> " } to number } (it * 2) else -1
+```
+It's easy to take condition value with use `it` keyword
+
+### Function Define
+
+Use `func` keyword to define functions
+```
+func { inc n } (n + 1)
+```
+
+### Call Function
+
+User-defined functions are usable like other statement
+```
+inc { inc 5 }
+```
