@@ -85,7 +85,6 @@ while (1 <= i <= 100) {
 This simple FizzBuzz example demonstrates how to:
 - Define a function (`fizzbuzz`).
 - Use conditional logic inside a function.
-- Use goal-directed evaluation for efficient error handling.
 - Iterate through a range of numbers with `while`.
 
 ---
