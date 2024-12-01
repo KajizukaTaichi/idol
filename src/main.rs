@@ -6,7 +6,7 @@ use std::{
     path::Path,
 };
 
-const VERSION: &str = "1.0.0";
+const VERSION: &str = "1.1.0";
 const SPACE: [char; 5] = [' ', '　', '\n', '\t', '\r'];
 
 fn main() {
