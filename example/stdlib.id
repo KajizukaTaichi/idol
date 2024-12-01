@@ -7,3 +7,9 @@ func (range start end step) {
     };
     (list)
 };
+
+func ( dbg value ) {
+    print "Debug: ";
+    print { cast value to symbol };
+    print new-line
+}
