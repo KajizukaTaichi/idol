@@ -42,6 +42,7 @@ impl Engine {
                 ("new-line".to_string(), Type::Text("\n".to_string())),
                 ("carriage-return".to_string(), Type::Text("\r".to_string())),
                 ("double-quote".to_string(), Type::Text("\"".to_string())),
+                ("space".to_string(), Type::Text(" ".to_string())),
                 ("tab".to_string(), Type::Text("\t".to_string())),
             ]),
         }
