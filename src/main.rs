@@ -541,7 +541,13 @@ impl Type {
             Type::Number(n) => n.to_string(),
             Type::Null => "null".to_string(),
             Type::Function(args, _) => format!("func ( {} )", args.join(" ")),
-            _ => todo!(),
+            Type::List(l) => format!(
+                "[{}]",
+                l.iter()
+                    .map(|i| i.get_symbol())
+                    .collect::<Vec<_>>()
+                    .join(", ")
+            ),
         }
     }
 
