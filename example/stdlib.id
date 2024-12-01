@@ -8,6 +8,14 @@ func (range start end step) {
     (list)
 };
 
+func (len list) {
+    let i = 0;
+    for _ in list {
+        let i = i + 1;
+    };
+    (i)
+};
+
 func ( dbg value ) {
     print "Debug: ";
     print { cast value to symbol };
