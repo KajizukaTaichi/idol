@@ -145,6 +145,14 @@ impl Engine {
                         return None;
                     }
                 }
+                Statement::Import(path) => {
+                    if let Ok(module) = read_to_string(path) {
+                        let module = Engine::parse(module)?;
+                        self.run(module)?
+                    } else {
+                        return None;
+                    }
+                }
                 Statement::Fault => return None,
             };
         }
@@ -165,6 +173,7 @@ enum Statement {
     Lambda(Vec<String>, Expr),
     Define(String, Vec<String>, Expr),
     Call(Expr, Vec<Expr>),
+    Import(String),
     Fault,
 }
 
@@ -183,6 +192,8 @@ impl Statement {
             Some(Statement::Print(Expr::parse(
                 code["print".len()..].to_string(),
             )?))
+        } else if code.starts_with("import") {
+            Some(Statement::Import(code["import".len()..].trim().to_string()))
         } else if code.starts_with("input") {
             Some(Statement::Input(Expr::parse(
                 code["input".len()..].to_string(),
