@@ -257,6 +257,7 @@ impl Statement {
 #[derive(Debug, Clone)]
 enum Expr {
     Infix(Box<Infix>),
+    List(Vec<Expr>),
     Block(Program),
     Value(Type),
 }
@@ -266,6 +267,13 @@ impl Expr {
         Some(match self {
             Expr::Infix(infix) => (*infix).eval(engine)?,
             Expr::Block(block) => engine.run(block.clone())?,
+            Expr::List(list) => {
+                let mut result = vec![];
+                for i in list {
+                    result.push(i.eval(engine)?)
+                }
+                Type::List(result)
+            }
             Expr::Value(value) => {
                 if let Type::Symbol(name) = value {
                     if let Some(refer) = engine.scope.get(name.as_str()) {
@@ -301,6 +309,18 @@ impl Expr {
                 token
             };
             Expr::Block(Engine::parse(token)?)
+        } else if token.starts_with('[') && token.ends_with(']') {
+            let token = {
+                let mut token = token.clone();
+                token.remove(0);
+                token.remove(token.len() - 1);
+                token
+            };
+            let mut list = vec![];
+            for elm in tokenize(token, vec![','])? {
+                list.push(Expr::parse(elm.trim().to_string())?);
+            }
+            Expr::List(list)
         } else if token.starts_with('"') && token.ends_with('"') {
             let token = {
                 let mut token = token.clone();
@@ -333,6 +353,7 @@ impl Expr {
                 ">=" => Operator::GreaterThanEq,
                 "&" => Operator::And,
                 "|" => Operator::Or,
+                "::" => Operator::Access,
                 _ => return None,
             };
             Some(Expr::Infix(Box::new(Infix {
@@ -363,8 +384,10 @@ impl Infix {
             Operator::Add => {
                 if let (Some(Type::Number(left)), Some(Type::Number(right))) = (&left, &right) {
                     Type::Number(left + right)
-                } else if let (Some(Type::Text(left)), Some(Type::Text(right))) = (left, right) {
-                    Type::Text(left + &right)
+                } else if let (Some(Type::Text(left)), Some(Type::Text(right))) = (&left, &right) {
+                    Type::Text(left.clone() + right)
+                } else if let (Some(Type::List(left)), Some(Type::List(right))) = (left, right) {
+                    Type::List([left, right].concat())
                 } else {
                     return None;
                 }
@@ -446,6 +469,23 @@ impl Infix {
                     return None;
                 }
             }
+
+            Operator::Access => {
+                if let Some(Type::List(list)) = left.clone() {
+                    let index = right?.get_number()?;
+                    list.get(index as usize)?.clone()
+                } else if let Some(Type::Text(text)) = left {
+                    let index = right?.get_number()?;
+                    Type::Text(
+                        text.chars()
+                            .collect::<Vec<char>>()
+                            .get(index as usize)?
+                            .to_string(),
+                    )
+                } else {
+                    return None;
+                }
+            }
         })
     }
 }
@@ -466,6 +506,7 @@ enum Operator {
     GreaterThanEq,
     And,
     Or,
+    Access,
 }
 
 #[derive(Debug, Clone)]
@@ -473,6 +514,7 @@ enum Type {
     Number(f64),
     Symbol(String),
     Text(String),
+    List(Vec<Type>),
     Function(Vec<String>, Box<Expr>),
     Null,
 }
@@ -488,7 +530,7 @@ impl Type {
                     None
                 }
             }
-            Type::Null | Type::Function(_, _) => None,
+            _ => None,
         }
     }
 
@@ -499,6 +541,7 @@ impl Type {
             Type::Number(n) => n.to_string(),
             Type::Null => "null".to_string(),
             Type::Function(args, _) => format!("func ( {} )", args.join(" ")),
+            _ => todo!(),
         }
     }
 
@@ -506,7 +549,7 @@ impl Type {
         match self {
             Type::Number(n) => n.to_string(),
             Type::Symbol(s) | Type::Text(s) => s.to_string(),
-            Type::Null | Type::Function(_, _) => String::new(),
+            _ => String::new(),
         }
     }
 }
