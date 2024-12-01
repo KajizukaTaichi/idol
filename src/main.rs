@@ -469,7 +469,6 @@ impl Infix {
                     return None;
                 }
             }
-
             Operator::Access => {
                 if let Some(Type::List(list)) = left.clone() {
                     let index = right?.get_number()?;
