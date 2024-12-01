@@ -282,7 +282,6 @@ impl Statement {
             Some(Statement::Call(
                 Expr::parse(code.get(0)?.to_string())?,
                 code.get(1..)?
-                    .to_vec()
                     .iter()
                     .map(|i| Expr::parse(i.to_string()).unwrap_or(Expr::Value(Type::Null)))
                     .collect(),
