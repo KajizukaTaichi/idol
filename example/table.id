@@ -2,7 +2,8 @@ let i = 1;
 while (1 <= i <= 9) {
     let j = 1;
     while (1 <= j <= 9) {
-        print { cast (i * j) to text } + tab;
+        let val = i * j;
+        print { if (val < 10) space else "" } + { cast val to text } + tab;
         let j = j + 1
     };
     print new-line;
