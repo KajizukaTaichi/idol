@@ -1,8 +1,9 @@
 use std::{
     collections::BTreeMap,
-    env::args,
+    env::{self, args},
     fs::read_to_string,
     io::{self, Write},
+    path::Path,
 };
 
 const VERSION: &str = "1.0.0";
@@ -12,6 +13,10 @@ fn main() {
     let args: Vec<String> = args().collect();
     if let Some(path) = args.get(1) {
         if let Ok(code) = read_to_string(path) {
+            if let Some(parent_dir) = Path::new(path).parent() {
+                env::set_current_dir(parent_dir).unwrap_or_default();
+            }
+
             if let Some(ast) = Engine::parse(code) {
                 let mut engine = Engine::new();
                 engine.run(ast);
