@@ -115,6 +115,14 @@ impl Engine {
                     }
                     result
                 }
+                Statement::For(counter, expr, code) => {
+                    let mut result = Type::Null;
+                    for i in expr.eval(self)?.get_list() {
+                        self.scope.insert(counter.clone(), i);
+                        result = code.eval(self)?;
+                    }
+                    result
+                }
                 Statement::Lambda(args, code) => Type::Function(args, Box::new(code)),
                 Statement::Define(name, args, code) => {
                     self.scope
@@ -152,6 +160,7 @@ enum Statement {
     Cast(Expr, Expr),
     Let(String, Expr),
     If(Expr, Expr, Option<Expr>),
+    For(String, Expr, Expr),
     While(Expr, Expr),
     Lambda(Vec<String>, Expr),
     Define(String, Vec<String>, Expr),
@@ -204,6 +213,18 @@ impl Statement {
                     Expr::parse(code.get(1)?.to_string())?,
                     None,
                 ))
+            }
+        } else if code.starts_with("for") {
+            let code = code["for".len()..].to_string();
+            let code = tokenize(code, SPACE.to_vec())?;
+            if code.get(1).and_then(|x| Some(x == "in")).unwrap_or(false) {
+                Some(Statement::For(
+                    code.get(0)?.to_string(),
+                    Expr::parse(code.get(2)?.to_string())?,
+                    Expr::parse(code.get(3)?.to_string())?,
+                ))
+            } else {
+                None
             }
         } else if code.starts_with("while") {
             let code = code["while".len()..].to_string();
@@ -555,6 +576,13 @@ impl Type {
             Type::Number(n) => n.to_string(),
             Type::Symbol(s) | Type::Text(s) => s.to_string(),
             _ => String::new(),
+        }
+    }
+
+    fn get_list(&self) -> Vec<Type> {
+        match self {
+            Type::List(list) => list.to_owned(),
+            other => vec![other.to_owned()],
         }
     }
 }
