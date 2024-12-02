@@ -13,9 +13,9 @@ func ( fizzbuzz n ) {
 
 let i = 1;
 for i in { range 1 101 1 } {
-    print {
+    puts {
         if { fizzbuzz i } it
         else { cast i to text }
-    } + new-line;
+    };
     let i = i + 1
 }
