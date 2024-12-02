@@ -36,7 +36,15 @@ func ( lisp program ) {
                         };
                         (result)
                     } else {
-                        fault
+                        if (program :: 0 == "^") {
+                            let result = program :: 1;
+                            for i in { slice program { range 2 { len program } 1 } } {
+                                let result = result ^ i ;
+                            };
+                            (result)
+                        } else {
+                            fault
+                        }
                     }
                 }
             }
