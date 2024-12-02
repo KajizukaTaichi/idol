@@ -10,7 +10,6 @@ func ( lisp program ) {
             let evaled = evaled + atom;
         }
     };
-    // dbg evaled;
     let program = evaled;
 
     if (program :: 0 == "+") {
@@ -48,4 +47,9 @@ func ( lisp program ) {
     }
 };
 
-print { lisp ["+", ["/", 9, 3], ["*", 9, ["-", 12, 3]], ["*", 2, 4], 8] };
+let s-expr = [
+    "+", ["/", 9, 3],
+    ["*", 9, ["-", 12, 3]],
+    ["*", 2, 4], 8
+];
+puts { lisp s-expr };
