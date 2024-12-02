@@ -24,8 +24,7 @@ func (len len.target) {
     (len.i)
 };
 
-func ( dbg dbg.value ) {
-    print "Debug: ";
-    print { cast dbg.value to symbol };
+func ( puts puts.value ) {
+    print { if ({ type of puts.value } == "text") puts.value else { cast puts.value to symbol } };
     print new-line
 }
