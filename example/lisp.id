@@ -94,6 +94,8 @@ func ( tokenize source ) {
     (tokens)
 };
 
-
-let s-expr = "(+ 1 (* 2 3) 4)";
-puts { lisp { parse s-expr } };
+puts "idol Lisp";
+while true {
+    let s-expr = { input "> " };
+    puts { lisp { parse s-expr } };
+}
