@@ -1,11 +1,11 @@
 import stdlib.id;
 
 let level = 0;
-func ( eval program ) {
+func ( lisp program ) {
     let evaled = [];
     for atom in program {
         if ({ type of atom } == "list") {
-            let evaled = evaled + { eval atom };
+            let evaled = evaled + { lisp atom };
         } else {
             let evaled = evaled + atom;
         }
@@ -48,4 +48,4 @@ func ( eval program ) {
     }
 };
 
-print { eval ["+", ["/", 9, 3], ["*", 9, ["-", 12, 3]], ["*", 2, 4], 8] };
+print { lisp ["+", ["/", 9, 3], ["*", 9, ["-", 12, 3]], ["*", 2, 4], 8] };
