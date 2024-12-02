@@ -8,7 +8,15 @@ func ( range start end step ) {
     (result)
 };
 
-func ( slice target specified ) {
+func ( len target ) {
+    let i = 0;
+    for _ in target {
+        let i = i + 1;
+    };
+    (i)
+};
+
+func ( list.slice target specified ) {
     let result = [];
     for i in specified {
         let result = result + (target :: i);
@@ -16,12 +24,29 @@ func ( slice target specified ) {
     (result)
 };
 
-func ( len target ) {
-    let i = 0;
-    for _ in target {
-        let i = i + 1;
+func ( list.concat target1 target2 ) {
+    let result = [];
+    for i in target1 {
+        let result = result + i;
     };
-    (i)
+    for i in target2 {
+        let result = result + i;
+    };
+    (result)
+};
+
+func ( list.set target index value ) {
+    let before = { list.slice target { range 0 index 1 } };
+    let after = { list.slice target { range (index + 1) { len target } 1 } };
+    list.concat (before + value) after
+};
+
+func ( text.slice target specified ) {
+    let result = "";
+    for i in specified {
+        let result = result + (target :: i);
+    };
+    (result)
 };
 
 func ( text.concat target ) {
@@ -32,15 +57,10 @@ func ( text.concat target ) {
     (result)
 };
 
-func ( list.concat list1 list2 ) {
-    let result = [];
-    for i in list1 {
-        let result = result + i;
-    };
-    for i in list2 {
-        let result = result + i;
-    };
-    (result)
+func ( text.set target index value ) {
+    let before = { text.slice target { range 0 index 1 } };
+    let after = { text.slice target { range (index + 1) { len target } 1 } };
+    text.concat [before, value, after]
 };
 
 func ( puts value ) {
