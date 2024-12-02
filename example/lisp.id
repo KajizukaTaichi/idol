@@ -1,6 +1,5 @@
 import stdlib.id;
 
-let level = 0;
 func ( lisp program ) {
     let evaled = [];
     for atom in program {
