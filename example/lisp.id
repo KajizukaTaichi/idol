@@ -10,31 +10,31 @@ func ( lisp program ) {
 
         if (program :: 0 == "+") {
             let result = program :: 1;
-            for i in { slice program { range 2 { len program } 1 } } {
+            for i in { list.slice program { range 2 { len program } 1 } } {
                 let result = result + i;
             };
             (result)
         } else { if (program :: 0 == "-") {
             let result = program :: 1;
-            for i in { slice program { range 2 { len program } 1 } } {
+            for i in { list.slice program { range 2 { len program } 1 } } {
                 let result = result - i;
             };
             (result)
         } else { if (program :: 0 == "*") {
             let result = program :: 1;
-            for i in { slice program { range 2 { len program } 1 } } {
+            for i in { list.slice program { range 2 { len program } 1 } } {
                 let result = result * i ;
             };
             (result)
         } else { if (program :: 0 == "/") {
             let result = program :: 1;
-            for i in { slice program { range 2 { len program } 1 } } {
+            for i in { list.slice program { range 2 { len program } 1 } } {
                 let result = result / i ;
             };
             (result)
         } else { if (program :: 0 == "^") {
             let result = program :: 1;
-            for i in { slice program { range 2 { len program } 1 } } {
+            for i in { list.slice program { range 2 { len program } 1 } } {
                 let result = result ^ i ;
             };
             (result)
@@ -46,7 +46,7 @@ func ( lisp program ) {
 
 func ( parse source ) {
     if ((source :: 0 == "(") & (source :: ({ len source } - 1) == ")")) {
-        let tokens = { tokenize { text.concat { slice source { range 1 ({ len source } - 1) 1 } } } };
+        let tokens = { tokenize { text.slice source { range 1 ({ len source } - 1) 1 } } };
         let result = [];
         for i in tokens {
             let result = result + { parse i };
