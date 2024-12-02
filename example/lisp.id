@@ -87,14 +87,16 @@ func ( tokenize source ) {
 };
 
 puts "idol Lisp";
-while true {
+let flag = 1;
+while (flag == 1) {
     let s-expr = { input "> " };
     if (s-expr == ":q") {
-        exit
-    };
-    if { lisp { parse s-expr } } {
-        puts it
+        let flag = 0;
     } else {
-        puts "Error! something is wrong"
-    };
+        if { lisp { parse s-expr } } {
+            puts it
+        } else {
+            puts "Error! something is wrong"
+        };
+    }
 }
