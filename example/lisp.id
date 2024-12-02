@@ -1,0 +1,34 @@
+import stdlib.id;
+
+let level = 0;
+func ( eval program ) {
+    let evaled = [];
+    for atom in program {
+        if ({ type of atom } == "list") {
+            let evaled = evaled + { eval atom };
+        } else {
+            let evaled = evaled + atom;
+        }
+    };
+    dbg evaled;
+
+    if (program :: 0 == "+") {
+        let result = program :: 1;
+        for i in { slice program { range 2 { len program } 1 } } {
+            let result = result + i;
+        };
+        (result)
+    } else {
+        if (program :: 0 == "*") {
+            let result = program :: 1;;
+            for i in { slice program { range 2 { len program } 1 } } {
+                let result = result * i ;
+            };
+            (result)
+        } else {
+            fault
+        }
+    }
+};
+
+print { eval ["+", 1, ["*", 9, 9], ["+", 4, 4]] };
