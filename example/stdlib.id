@@ -24,7 +24,7 @@ func ( len target ) {
     (i)
 };
 
-func ( concat-text target ) {
+func ( text.concat target ) {
     let result = "";
     for i in target {
         let result = result + i;
@@ -32,7 +32,7 @@ func ( concat-text target ) {
     (result)
 };
 
-func ( concat-list list1 list2  ) {
+func ( list.concat list1 list2 ) {
     let result = [];
     for i in list1 {
         let result = result + i;
