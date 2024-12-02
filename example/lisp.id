@@ -91,7 +91,7 @@ func ( tokenize source ) {
 };
 
 puts "idol Lisp";
-while (flag) {
+while true {
     let s-expr = { input "> " };
     if (s-expr == ":q") {
         exit
