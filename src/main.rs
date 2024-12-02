@@ -441,10 +441,9 @@ impl Infix {
                     Type::Number(left + right)
                 } else if let (Some(Type::Text(left)), Some(Type::Text(right))) = (&left, &right) {
                     Type::Text(left.clone() + right)
-                } else if let (Some(Type::List(left)), Some(Type::List(right))) = (&left, &right) {
-                    Type::List([left.clone(), right.clone()].concat())
-                } else if let (Some(Type::List(left)), Some(right)) = (left, right) {
-                    Type::List([left, vec![right]].concat())
+                } else if let (Some(Type::List(mut left)), Some(right)) = (left, right) {
+                    left.push(right);
+                    Type::List(left)
                 } else {
                     return None;
                 }
@@ -452,8 +451,13 @@ impl Infix {
             Operator::Sub => {
                 if let (Some(Type::Number(left)), Some(Type::Number(right))) = (&left, &right) {
                     Type::Number(left - right)
-                } else if let (Some(Type::Text(left)), Some(Type::Text(right))) = (left, right) {
-                    Type::Text(left.replace(&right, ""))
+                } else if let (Some(Type::Text(left)), Some(Type::Text(right))) = (&left, &right) {
+                    Type::Text(left.replace(right, ""))
+                } else if let (Some(Type::List(mut left)), Some(Type::Number(right))) =
+                    (left, right)
+                {
+                    left.remove(right as usize);
+                    Type::List(left)
                 } else {
                     return None;
                 }
@@ -618,6 +622,7 @@ impl Type {
     fn get_list(&self) -> Vec<Type> {
         match self {
             Type::List(list) => list.to_owned(),
+            Type::Text(text) => text.chars().map(|i| Type::Text(i.to_string())).collect(),
             other => vec![other.to_owned()],
         }
     }
