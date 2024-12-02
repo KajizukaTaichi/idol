@@ -149,16 +149,17 @@ impl Engine {
                 }
                 Statement::Call(func, value_args) => {
                     let func = func.eval(self);
+                    let frame = &mut self.clone();
                     if let Some(Type::Func(func_args, code)) = func {
                         if func_args.len() != value_args.len() {
                             return None;
                         }
 
                         for (arg, val) in func_args.iter().zip(value_args) {
-                            let val = val.eval(self)?;
-                            self.scope.insert(arg.to_string(), val);
+                            let val = val.eval(frame)?;
+                            frame.scope.insert(arg.to_string(), val);
                         }
-                        code.eval(self)?
+                        code.eval(frame)?
                     } else {
                         return None;
                     }
