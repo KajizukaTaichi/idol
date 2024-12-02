@@ -39,7 +39,7 @@ func ( lisp program ) {
                     };
                     (result)
                 } else {
-                    fault
+                    (program :: 0)
                 }
             }
         }
