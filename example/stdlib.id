@@ -8,7 +8,7 @@ func (range range.start range.end range.step) {
     (range.result)
 };
 
-func (slice slice.target slice.pecified) {
+func (slice slice.target slice.specified) {
     let slice.result = [];
     for slice.i in slice.specified {
         let slice.result = slice.result + (slice.specified :: slice.i);
