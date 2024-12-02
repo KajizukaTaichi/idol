@@ -46,5 +46,54 @@ func ( lisp program ) {
     }
 };
 
-let s-expr = ["+", ["/", 9, 3], ["*", 9, ["-", 12, 3]], ["*", 2, 4], 8];
-puts { lisp s-expr };
+func ( parse source ) {
+    if ((source :: 0 == "(") & (source :: ({ len source } - 1) == ")")) {
+        let tokens = { tokenize { concat-text { slice source { range 1 ({ len source } - 1) 1 } } } };
+        let result = [];
+        for i in tokens {
+            let result = result + { parse i };
+        };
+        (result)
+    } else {
+        if { cast source to number } it else source
+    }
+};
+
+func ( tokenize source ) {
+    let tokens = [];
+    let current = "";
+    let nest = 0;
+
+    for c in source {
+        if (c == "(") {
+            let nest = nest + 1;
+            let current = current + c;
+        } else {
+            if (c == ")") {
+                let nest = nest - 1;
+                let current = current + c;
+            } else {
+                if (c == " ") {
+                    if (nest == 0) {
+                        let tokens = tokens + current;
+                        let current = "";
+                    } else {
+                        let current = current + c;
+                    }
+                } else {
+                    let current = current + c;
+                }
+            }
+        }
+    };
+
+    if ((nest == 0) & (current != "")) {
+        let tokens = tokens + current;
+    };
+
+    (tokens)
+};
+
+
+let s-expr = "(+ 1 (* 2 3) 4)";
+puts { lisp { parse s-expr } };
