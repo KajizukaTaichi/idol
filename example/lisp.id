@@ -4,11 +4,7 @@ func ( lisp program ) {
     if ({ type of program } == "list") {
         let evaled = [];
         for atom in program {
-            if ({ type of atom } == "list") {
-                let evaled = evaled + { lisp atom };
-            } else {
-                let evaled = evaled + atom;
-            }
+            let evaled = evaled + { lisp atom };
         };
         let program = evaled;
 
