@@ -43,9 +43,7 @@ func ( concat-list list1 list2  ) {
     (result)
 };
 
-func ( puts values ) {
-    for value in { if ({ type of values } == "list") values else [values] } {
-        print { if ({ type of value } == "text") value else { cast value to symbol } };
-        print new-line
-    }
+func ( puts value ) {
+    print { if ({ type of value } == "text") value else { cast value to symbol } };
+    print new-line
 }
