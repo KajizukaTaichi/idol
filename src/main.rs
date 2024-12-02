@@ -81,7 +81,7 @@ impl Engine {
                     io::stdout().flush().unwrap();
                     let mut buffer = String::new();
                     if io::stdin().read_line(&mut buffer).is_ok() {
-                        Type::Text(buffer)
+                        Type::Text(buffer.trim().to_string())
                     } else {
                         return None;
                     }
