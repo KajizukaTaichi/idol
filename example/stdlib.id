@@ -1,23 +1,31 @@
-func (range start end step) {
-    let i = start;
-    let list = [];
-    while (start <= i < end) {
-        let list = list + i;
-        let i = i + step
+func (range range.start range.end range.step) {
+    let range.i = range.start;
+    let range.result = [];
+    while (range.start <= range.i < range.end) {
+        let range.result = range.result + range.i;
+        let range.i = range.i + range.step
     };
-    (list)
+    (range.result)
 };
 
-func (len list) {
-    let i = 0;
-    for _ in list {
-        let i = i + 1;
+func (slice slice.target slice.pecified) {
+    let slice.result = [];
+    for slice.i in slice.specified {
+        let slice.result = slice.result + (slice.specified :: slice.i);
     };
-    (i)
+    (slice.result)
 };
 
-func ( dbg value ) {
+func (len len.target) {
+    let len.i = 0;
+    for _ in len.target {
+        let len.i = len.i + 1;
+    };
+    (len.i)
+};
+
+func ( dbg dbg.value ) {
     print "Debug: ";
-    print { cast value to symbol };
+    print { cast dbg.value to symbol };
     print new-line
 }
