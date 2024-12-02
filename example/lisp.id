@@ -46,7 +46,7 @@ func ( lisp program ) {
 
 func ( parse source ) {
     if ((source :: 0 == "(") & (source :: ({ len source } - 1) == ")")) {
-        let tokens = { tokenize { concat-text { slice source { range 1 ({ len source } - 1) 1 } } } };
+        let tokens = { tokenize { text.concat { slice source { range 1 ({ len source } - 1) 1 } } } };
         let result = [];
         for i in tokens {
             let result = result + { parse i };
