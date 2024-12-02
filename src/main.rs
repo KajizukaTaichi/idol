@@ -19,9 +19,11 @@ fn main() {
 
             if let Some(ast) = Engine::parse(code) {
                 let mut engine = Engine::new();
-                engine.run(ast);
+                if engine.run(ast).is_none() {
+                    println!("Error! something is wrong at runtime")
+                }
             } else {
-                println!("Syntax Error! something is wrong")
+                println!("Error! something is wrong at syntax")
             }
         } else {
             eprintln!("Error! the file can't be opened")
