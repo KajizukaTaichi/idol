@@ -298,13 +298,13 @@ impl Statement {
             Some(Statement::Fault)
         } else {
             let code = tokenize(code.to_string(), SPACE.to_vec())?;
-            Some(Statement::Call(
-                Expr::parse(code.get(0)?.to_string())?,
-                code.get(1..)?
-                    .iter()
-                    .map(|i| Expr::parse(i.to_string()).unwrap_or(Expr::Value(Type::Null)))
-                    .collect(),
-            ))
+            Some(Statement::Call(Expr::parse(code.get(0)?.to_string())?, {
+                let mut body = vec![];
+                for i in code.get(1..)? {
+                    body.push(Expr::parse(i.to_owned())?)
+                }
+                body
+            }))
         }
     }
 }
