@@ -86,6 +86,20 @@ impl Engine {
                         return None;
                     }
                 }
+                Statement::TypeOf(expr) => {
+                    let expr = expr.eval(self)?;
+                    Type::Text(
+                        match expr {
+                            Type::Number(_) => "number",
+                            Type::Text(_) => "text",
+                            Type::Symbol(_) => "symbol",
+                            Type::List(_) => "list",
+                            Type::Func(_, _) => "func",
+                            Type::Null => "null",
+                        }
+                        .to_string(),
+                    )
+                }
                 Statement::Cast(expr, to) => {
                     let expr = expr.eval(self)?;
                     match to.eval(self)?.get_text().as_str().trim() {
@@ -128,15 +142,14 @@ impl Engine {
                     }
                     result
                 }
-                Statement::Lambda(args, code) => Type::Function(args, Box::new(code)),
+                Statement::Lambda(args, code) => Type::Func(args, Box::new(code)),
                 Statement::Define(name, args, code) => {
-                    self.scope
-                        .insert(name, Type::Function(args, Box::new(code)));
+                    self.scope.insert(name, Type::Func(args, Box::new(code)));
                     Type::Null
                 }
                 Statement::Call(func, value_args) => {
                     let func = func.eval(self);
-                    if let Some(Type::Function(func_args, code)) = func {
+                    if let Some(Type::Func(func_args, code)) = func {
                         if func_args.len() != value_args.len() {
                             return None;
                         }
@@ -170,6 +183,7 @@ enum Statement {
     Value(Expr),
     Print(Expr),
     Input(Expr),
+    TypeOf(Expr),
     Cast(Expr, Expr),
     Let(String, Expr),
     If(Expr, Expr, Option<Expr>),
@@ -202,6 +216,10 @@ impl Statement {
         } else if code.starts_with("input") {
             Some(Statement::Input(Expr::parse(
                 code["input".len()..].to_string(),
+            )?))
+        } else if code.starts_with("type of") {
+            Some(Statement::TypeOf(Expr::parse(
+                code["type of".len()..].to_string(),
             )?))
         } else if code.starts_with("cast") {
             let code = code["cast".len()..].to_string();
@@ -552,7 +570,7 @@ enum Type {
     Symbol(String),
     Text(String),
     List(Vec<Type>),
-    Function(Vec<String>, Box<Expr>),
+    Func(Vec<String>, Box<Expr>),
     Null,
 }
 
@@ -577,7 +595,7 @@ impl Type {
             Type::Text(s) => format!("\"{s}\""),
             Type::Number(n) => n.to_string(),
             Type::Null => "null".to_string(),
-            Type::Function(args, _) => format!("func ( {} )", args.join(" ")),
+            Type::Func(args, _) => format!("func ( {} )", args.join(" ")),
             Type::List(l) => format!(
                 "[{}]",
                 l.iter()
