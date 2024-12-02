@@ -11,7 +11,7 @@ func (range range.start range.end range.step) {
 func (slice slice.target slice.specified) {
     let slice.result = [];
     for slice.i in slice.specified {
-        let slice.result = slice.result + (slice.specified :: slice.i);
+        let slice.result = slice.result + (slice.target :: slice.i);
     };
     (slice.result)
 };
