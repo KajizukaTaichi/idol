@@ -1,49 +1,51 @@
 import stdlib.id;
 
 func ( lisp program ) {
-    let evaled = [];
-    for atom in program {
-        if ({ type of atom } == "list") {
-            let evaled = evaled + { lisp atom };
-        } else {
-            let evaled = evaled + atom;
-        }
-    };
-    let program = evaled;
-
-    if (program :: 0 == "+") {
-        let result = program :: 1;
-        for i in { slice program { range 2 { len program } 1 } } {
-            let result = result + i;
+    if ({ type of program } == "list") {
+        let evaled = [];
+        for atom in program {
+            if ({ type of atom } == "list") {
+                let evaled = evaled + { lisp atom };
+            } else {
+                let evaled = evaled + atom;
+            }
         };
-        (result)
-    } else {
-        if (program :: 0 == "-") {
+        let program = evaled;
+
+        if (program :: 0 == "+") {
             let result = program :: 1;
             for i in { slice program { range 2 { len program } 1 } } {
-                let result = result - i;
+                let result = result + i;
             };
             (result)
         } else {
-            if (program :: 0 == "*") {
+            if (program :: 0 == "-") {
                 let result = program :: 1;
                 for i in { slice program { range 2 { len program } 1 } } {
-                    let result = result * i ;
+                    let result = result - i;
                 };
                 (result)
             } else {
-                if (program :: 0 == "/") {
+                if (program :: 0 == "*") {
                     let result = program :: 1;
                     for i in { slice program { range 2 { len program } 1 } } {
-                        let result = result / i ;
+                        let result = result * i ;
                     };
                     (result)
                 } else {
-                    (program :: 0)
+                    if (program :: 0 == "/") {
+                        let result = program :: 1;
+                        for i in { slice program { range 2 { len program } 1 } } {
+                            let result = result / i ;
+                        };
+                        (result)
+                    } else {
+                        fault
+                    }
                 }
             }
         }
-    }
+    } else program
 };
 
 func ( parse source ) {
@@ -73,12 +75,10 @@ func ( tokenize source ) {
                 let nest = nest - 1;
                 let current = current + c;
             } else {
-                if (c == " ") {
-                    if (nest == 0) {
+                if ((c == " ") & (nest == 0)) {
+                    if (current != "") {
                         let tokens = tokens + current;
                         let current = "";
-                    } else {
-                        let current = current + c;
                     }
                 } else {
                     let current = current + c;
@@ -95,7 +95,14 @@ func ( tokenize source ) {
 };
 
 puts "idol Lisp";
-while true {
+while (flag) {
     let s-expr = { input "> " };
-    puts { lisp { parse s-expr } };
+    if (s-expr == ":q") {
+        exit
+    };
+    if { lisp { parse s-expr } } {
+        puts it
+    } else {
+        puts "Error! something is wrong"
+    };
 }
