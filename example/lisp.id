@@ -68,20 +68,25 @@ func ( tokenize source ) {
     let nest = 0;
 
     for c in source {
-        if (c == "(") {
-            let nest = nest + 1;
-            let current = current + c;
-        } else { if (c == ")") {
-            let nest = nest - 1;
-            let current = current + c;
-        } else { if ((c == " ") & (nest == 0)) {
-            if (current != "") {
-                let tokens = tokens + current;
-                let current = "";
+        match c {
+            "(" = {
+                let nest = nest + 1;
+                let current = current + c;
+            },
+            ")" = {
+                let nest = nest + 1;
+                let current = current + c;
+            },
+            " " = {
+                if ((current != "") & (nest == 0)) {
+                    let tokens = tokens + current;
+                    let current = "";
+                }
+            },
+            _ = {
+                let current = current + c;
             }
-        } else {
-            let current = current + c;
-        } } }
+        }
     };
 
     if ((nest == 0) & (current != "")) {
