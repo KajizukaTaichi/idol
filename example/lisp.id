@@ -74,13 +74,17 @@ func ( tokenize source ) {
                 let current = current + c;
             },
             ")" = {
-                let nest = nest + 1;
+                let nest = nest - 1;
                 let current = current + c;
             },
             " " = {
-                if ((current != "") & (nest == 0)) {
-                    let tokens = tokens + current;
-                    let current = "";
+                if (nest == 0) {
+                    if (current != "") {
+                       let tokens = tokens + current;
+                        let current = "";
+                    }
+                } else {
+                    let current = current + c;
                 }
             },
             _ = {
@@ -103,10 +107,11 @@ while (flag == 1) {
     if (s-expr == ":q") {
         let flag = 0;
     } else {
+        puts { parse s-expr };
         if { lisp { parse s-expr } } {
             puts it
         } else {
             puts "Error! something is wrong"
-        };
+        }
     }
 }
