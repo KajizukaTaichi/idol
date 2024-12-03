@@ -128,6 +128,18 @@ impl Engine {
                         }
                     }
                 }
+                Statement::Match(expr, conds) => {
+                    let expr = expr.eval(self)?;
+                    let mut result = Type::Null;
+                    for (cond, value) in conds {
+                        let cond = cond.eval(self)?.get_symbol();
+                        if expr.get_symbol() == cond || cond == "_" {
+                            result = value.eval(self)?;
+                            break;
+                        }
+                    }
+                    result
+                }
                 Statement::While(expr, code) => {
                     let mut result = Type::Null;
                     while let Some(it) = expr.eval(self) {
@@ -190,6 +202,7 @@ enum Statement {
     Cast(Expr, Expr),
     Let(String, Expr),
     If(Expr, Expr, Option<Expr>),
+    Match(Expr, Vec<(Expr, Expr)>),
     For(String, Expr, Expr),
     While(Expr, Expr),
     Lambda(Vec<String>, Expr),
@@ -251,6 +264,23 @@ impl Statement {
                     None,
                 ))
             }
+        } else if code.starts_with("match") {
+            let code = code["match".len()..].to_string();
+            let tokens = tokenize(code, SPACE.to_vec())?;
+            let expr = Expr::parse(tokens.get(0)?.to_string())?;
+            let tokens = tokenize(
+                tokens.get(1)?[1..tokens.get(1)?.len() - 1].to_string(),
+                vec![','],
+            )?;
+            let mut conds = vec![];
+            for i in tokens {
+                let tokens = tokenize(i, vec!['='])?;
+                conds.push((
+                    Expr::parse(tokens.get(0)?.to_string())?,
+                    Expr::parse(tokens.get(1)?.to_string())?,
+                ))
+            }
+            Some(Statement::Match(expr, conds))
         } else if code.starts_with("for") {
             let code = code["for".len()..].to_string();
             let code = tokenize(code, SPACE.to_vec())?;
