@@ -80,7 +80,7 @@ func ( tokenize source ) {
             " " = {
                 if (nest == 0) {
                     if (current != "") {
-                       let tokens = tokens + current;
+                        let tokens = tokens + current;
                         let current = "";
                     }
                 } else {
