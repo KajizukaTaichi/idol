@@ -44,6 +44,9 @@ func ( lisp program ) {
                 };
                 (result)
             },
+            "concat" = {
+                text.concat { list.slice program { range 1 { len program } 1 } }
+            },
             _ = { fault }
         }
     } else program
