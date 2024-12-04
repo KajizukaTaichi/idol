@@ -132,8 +132,8 @@ impl Engine {
                     let expr = expr.eval(self)?;
                     let mut result = Type::Null;
                     for (cond, value) in conds {
-                        let cond = cond.eval(self)?.get_symbol();
-                        if expr.get_symbol() == cond || cond == "_" {
+                        let cond = cond.eval(self)?;
+                        if expr.is_match(&cond) {
                             result = value.eval(self)?;
                             break;
                         }
@@ -656,6 +656,22 @@ impl Type {
             Type::List(list) => list.to_owned(),
             Type::Text(text) => text.chars().map(|i| Type::Text(i.to_string())).collect(),
             other => vec![other.to_owned()],
+        }
+    }
+
+    fn is_match(&self, condition: &Type) -> bool {
+        if let (Type::List(list), Type::List(conds)) = (self, condition) {
+            for (elm, cond) in list.iter().zip(conds) {
+                if !elm.is_match(cond) {
+                    return false;
+                }
+            }
+            true
+        } else {
+            if condition.get_symbol() == "_" {
+                return true;
+            }
+            self.get_symbol() == condition.get_symbol()
         }
     }
 }
