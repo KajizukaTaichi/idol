@@ -457,9 +457,7 @@ impl Expr {
                     token,
                 ),
             })))?;
-            println!("Before optimize: {result:?}");
             result.optimize();
-            println!("After optimize: {result:?}");
             Some(result)
         } else {
             return Some(token);
