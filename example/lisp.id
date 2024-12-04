@@ -51,7 +51,7 @@ func ( lisp program environment ) {
                     text.concat { list.slice program { range 1 { len program } 1 } }
                 },
                 "define" = {
-                    let environment = environment +  [program :: 1, program :: 2];
+                    let environment = environment + [program :: 1, program :: 2];
                 },
                 _ = { fault }
             }
