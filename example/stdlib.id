@@ -1,3 +1,8 @@
+func ( puts value ) {
+    print { if ({ type of value } == "text") value else { cast value to symbol } };
+    print new-line
+}
+
 func ( range start end step ) {
     let i = start;
     let result = [];
@@ -41,6 +46,15 @@ func ( list.set target index value ) {
     list.concat (before + value) after
 };
 
+func ( list.reverse target) {
+    let result = [];
+    for i in target {
+        let result = { list.concat [i] result };
+    };
+    (result)
+};
+
+
 func ( text.slice target specified ) {
     let result = "";
     for i in specified {
@@ -63,6 +77,14 @@ func ( text.set target index value ) {
     text.concat [before, value, after]
 };
 
+func ( text.reverse target ) {
+    let result = "";
+    for i in target {
+        let result = i + result;
+    };
+    (result)
+};
+
 func ( dict.get target ident ) {
     let result = null;
     for i in target {
@@ -72,8 +94,3 @@ func ( dict.get target ident ) {
     };
     (null != result)
 };
-
-func ( puts value ) {
-    print { if ({ type of value } == "text") value else { cast value to symbol } };
-    print new-line
-}
