@@ -56,7 +56,7 @@ func ( lisp program environment ) {
                 _ = { fault }
             }
         },
-        "text" | "symbol" = {
+        "text" = {
             if { dict.get environment program } it else program
         },
         _ = program
@@ -92,7 +92,7 @@ func ( tokenize source ) {
                 let nest = nest - 1;
                 let current = current + c;
             },
-            " " = {
+            space | tab | new-line = {
                 if (nest == 0) {
                     if (current != "") {
                         let tokens = tokens + current;
