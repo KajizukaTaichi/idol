@@ -113,7 +113,9 @@ impl Engine {
                 }
                 Statement::Let(name, expr) => {
                     let val = expr.eval(&mut self.clone())?;
-                    self.scope.insert(name, val.clone());
+                    if name != "_" {
+                        self.scope.insert(name, val.clone());
+                    }
                     Type::Null
                 }
                 Statement::If(expr, then, r#else) => {
@@ -151,7 +153,9 @@ impl Engine {
                 Statement::For(counter, expr, code) => {
                     let mut result = Type::Null;
                     for i in expr.eval(self)?.get_list() {
-                        self.scope.insert(counter.clone(), i);
+                        if counter != "_" {
+                            self.scope.insert(counter.clone(), i);
+                        }
                         result = code.eval(self)?;
                     }
                     result
