@@ -20,7 +20,7 @@ fn main() {
             if let Some(ast) = Engine::parse(code) {
                 let mut engine = Engine::new();
                 if engine.eval(ast).is_none() {
-                    println!("Error! something is wrong at evaltime")
+                    println!("Error! something is wrong at runtime")
                 }
             } else {
                 println!("Error! something is wrong at syntax")
@@ -488,6 +488,17 @@ impl Expr {
             } = *infix.clone()
             {
                 *self = expr.clone();
+            } else if let Infix {
+                operator: Operator::Access,
+                values: (Expr::List(list), mut index),
+            } = *infix.clone()
+            {
+                index.optimize();
+                if let Expr::Value(Type::Number(index)) = index {
+                    if let Some(expr) = list.get(index as usize) {
+                        *self = expr.clone()
+                    }
+                }
             }
         } else if let Expr::List(exprs) = self {
             for expr in exprs {
