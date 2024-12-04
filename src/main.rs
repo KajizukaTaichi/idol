@@ -457,7 +457,9 @@ impl Expr {
                     token,
                 ),
             })))?;
+            println!("Before optimize: {result:?}");
             result.optimize();
+            println!("After optimize: {result:?}");
             Some(result)
         } else {
             return Some(token);
@@ -496,9 +498,35 @@ impl Expr {
                 index.optimize();
                 if let Expr::Value(Type::Number(index)) = index {
                     if let Some(expr) = list.get(index as usize) {
+                        let mut expr = expr.clone();
+                        expr.optimize();
                         *self = expr.clone()
                     }
                 }
+            } else if let Infix {
+                operator: Operator::Add,
+                values: (Expr::Value(Type::Number(a)), Expr::Value(Type::Number(b))),
+            } = *infix.clone()
+            {
+                *self = Expr::Value(Type::Number(a + b));
+            } else if let Infix {
+                operator: Operator::Sub,
+                values: (Expr::Value(Type::Number(a)), Expr::Value(Type::Number(b))),
+            } = *infix.clone()
+            {
+                *self = Expr::Value(Type::Number(a - b));
+            } else if let Infix {
+                operator: Operator::Mul,
+                values: (Expr::Value(Type::Number(a)), Expr::Value(Type::Number(b))),
+            } = *infix.clone()
+            {
+                *self = Expr::Value(Type::Number(a * b));
+            } else if let Infix {
+                operator: Operator::Div,
+                values: (Expr::Value(Type::Number(a)), Expr::Value(Type::Number(b))),
+            } = *infix.clone()
+            {
+                *self = Expr::Value(Type::Number(a / b));
             }
         } else if let Expr::List(exprs) = self {
             for expr in exprs {
