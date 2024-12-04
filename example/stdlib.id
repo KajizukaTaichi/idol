@@ -1,7 +1,7 @@
 func ( puts value ) {
     print { if ({ type of value } == "text") value else { cast value to symbol } };
     print new-line
-}
+};
 
 func ( range start end step ) {
     let i = start;
