@@ -19,8 +19,8 @@ fn main() {
 
             if let Some(ast) = Engine::parse(code) {
                 let mut engine = Engine::new();
-                if engine.run(ast).is_none() {
-                    println!("Error! something is wrong at runtime")
+                if engine.eval(ast).is_none() {
+                    println!("Error! something is wrong at evaltime")
                 }
             } else {
                 println!("Error! something is wrong at syntax")
@@ -67,7 +67,7 @@ impl Engine {
         Some(program)
     }
 
-    fn run(&mut self, program: Program) -> Option<Type> {
+    fn eval(&mut self, program: Program) -> Option<Type> {
         let mut result = Type::Null;
         for code in program {
             result = match code {
@@ -187,7 +187,7 @@ impl Engine {
                 Statement::Import(path) => {
                     if let Ok(module) = read_to_string(path) {
                         let module = Engine::parse(module)?;
-                        self.run(module)?
+                        self.eval(module)?
                     } else {
                         return None;
                     }
@@ -360,7 +360,7 @@ impl Expr {
     fn eval(&self, engine: &mut Engine) -> Option<Type> {
         Some(match self {
             Expr::Infix(infix) => (*infix).eval(engine)?,
-            Expr::Block(block) => engine.run(block.clone())?,
+            Expr::Block(block) => engine.eval(block.clone())?,
             Expr::List(list) => {
                 let mut result = vec![];
                 for i in list {
@@ -450,15 +450,49 @@ impl Expr {
                 "::" => Operator::Access,
                 _ => return None,
             };
-            Some(Expr::Infix(Box::new(Infix {
+            let mut result = Some(Expr::Infix(Box::new(Infix {
                 operator,
                 values: (
                     Expr::parse(token_list.get(..token_list.len() - 2)?.to_vec().join(" "))?,
                     token,
                 ),
-            })))
+            })))?;
+            result.optimize();
+            Some(result)
         } else {
             return Some(token);
+        }
+    }
+
+    fn optimize(&mut self) {
+        if let Expr::Infix(infix) = self {
+            if let Infix {
+                operator: Operator::Add,
+                values: (expr, Expr::Value(Type::Number(0.0))),
+            }
+            | Infix {
+                operator: Operator::Add,
+                values: (Expr::Value(Type::Number(0.0)), expr),
+            }
+            | Infix {
+                operator: Operator::Mul,
+                values: (expr, Expr::Value(Type::Number(1.0))),
+            }
+            | Infix {
+                operator: Operator::Mul,
+                values: (Expr::Value(Type::Number(1.0)), expr),
+            }
+            | Infix {
+                operator: Operator::Sub,
+                values: (expr, Expr::Value(Type::Number(0.0))),
+            } = *infix.clone()
+            {
+                *self = expr.clone();
+            }
+        } else if let Expr::List(exprs) = self {
+            for expr in exprs {
+                expr.optimize();
+            }
         }
     }
 }
