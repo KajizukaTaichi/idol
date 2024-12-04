@@ -133,11 +133,13 @@ impl Engine {
                 Statement::Match(expr, conds) => {
                     let expr = expr.eval(self)?;
                     let mut result = Type::Null;
-                    for (cond, value) in conds {
-                        let cond = cond.eval(self)?;
-                        if expr.is_match(&cond) {
-                            result = value.eval(self)?;
-                            break;
+                    'top: for (conds, value) in conds {
+                        for cond in conds {
+                            let cond = cond.eval(self)?;
+                            if expr.is_match(&cond) {
+                                result = value.eval(self)?;
+                                break 'top;
+                            }
                         }
                     }
                     result
@@ -206,7 +208,7 @@ enum Statement {
     Cast(Expr, Expr),
     Let(String, Expr),
     If(Expr, Expr, Option<Expr>),
-    Match(Expr, Vec<(Expr, Expr)>),
+    Match(Expr, Vec<(Vec<Expr>, Expr)>),
     For(String, Expr, Expr),
     While(Expr, Expr),
     Lambda(Vec<String>, Expr),
@@ -279,9 +281,11 @@ impl Statement {
             let mut conds = vec![];
             for i in tokens {
                 let tokens = tokenize(i, vec!['='])?;
+                let mut cond = vec![];
                 for i in tokenize(tokens.get(0)?.to_string(), vec!['|'])? {
-                    conds.push((Expr::parse(i)?, Expr::parse(tokens.get(1)?.to_string())?))
+                    cond.push(Expr::parse(i.to_string())?)
                 }
+                conds.push((cond, Expr::parse(tokens.get(1)?.to_string())?))
             }
             Some(Statement::Match(expr, conds))
         } else if code.starts_with("for") {
@@ -673,8 +677,9 @@ impl Type {
         } else {
             if condition.get_symbol() == "_" {
                 return true;
+            } else {
+                self.get_symbol() == condition.get_symbol()
             }
-            self.get_symbol() == condition.get_symbol()
         }
     }
 }
