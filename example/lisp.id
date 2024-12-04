@@ -107,7 +107,6 @@ while (flag == 1) {
     if (s-expr == ":q") {
         let flag = 0;
     } else {
-        puts { parse s-expr };
         if { lisp { parse s-expr } } {
             puts it
         } else {
