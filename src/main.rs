@@ -112,7 +112,7 @@ impl Engine {
                     }
                 }
                 Statement::Let(name, expr) => {
-                    let val = expr.eval(&mut self.clone())?;
+                    let val = expr.eval(self)?;
                     if name != "_" {
                         self.scope.insert(name, val.clone());
                     }
