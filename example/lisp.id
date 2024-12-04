@@ -56,7 +56,7 @@ func ( lisp program environment ) {
                 _ = { fault }
             }
         },
-        "text" = {
+        "text" | "symbol" = {
             if { dict.get environment program } it else program
         },
         _ = program
