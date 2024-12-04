@@ -1,55 +1,67 @@
 import stdlib.id;
 
-func ( lisp program ) {
-    if ({ type of program } == "list") {
-        let evaled = [];
-        for atom in program {
-            let evaled = evaled + { lisp atom };
-        };
-        let program = evaled;
+func ( lisp program environment ) {
+    let result = { match { type of program } {
+        "list" = {
+            let evaled = [];
+            for atom in program {
+                let atom = { lisp atom environment };
+                let evaled = evaled + (atom :: 0);
+                let environment = atom :: 1;
+            };
+            let program = evaled;
 
-        match (program :: 0) {
-            "+" = {
-                let result = program :: 1;
-                for i in { list.slice program { range 2 { len program } 1 } } {
-                    let result = result + i;
-                };
-                (result)
-            },
-            "-" = {
-                let result = program :: 1;
-                for i in { list.slice program { range 2 { len program } 1 } } {
-                    let result = result - i;
-                };
-                (result)
-            },
-            "*" = {
-                let result = program :: 1;
-                for i in { list.slice program { range 2 { len program } 1 } } {
-                    let result = result * i;
-                };
-                (result)
-            },
-            "/" = {
-                let result = program :: 1;
-                for i in { list.slice program { range 2 { len program } 1 } } {
-                    let result = result / i;
-                };
-                (result)
-            },
-            "^" = {
-                let result = program :: 1;
-                for i in { list.slice program { range 2 { len program } 1 } } {
-                    let result = result ^ i;
-                };
-                (result)
-            },
-            "concat" = {
-                text.concat { list.slice program { range 1 { len program } 1 } }
-            },
-            _ = { fault }
-        }
-    } else program
+            match (program :: 0) {
+                "+" = {
+                    let result = program :: 1;
+                    for i in { list.slice program { range 2 { len program } 1 } } {
+                        let result = result + i;
+                    };
+                    (result)
+                },
+                "-" = {
+                    let result = program :: 1;
+                    for i in { list.slice program { range 2 { len program } 1 } } {
+                        let result = result - i;
+                    };
+                    (result)
+                },
+                "*" = {
+                    let result = program :: 1;
+                    for i in { list.slice program { range 2 { len program } 1 } } {
+                        let result = result * i;
+                    };
+                    (result)
+                },
+                "/" = {
+                    let result = program :: 1;
+                    for i in { list.slice program { range 2 { len program } 1 } } {
+                        let result = result / i;
+                    };
+                    (result)
+                },
+                "^" = {
+                    let result = program :: 1;
+                    for i in { list.slice program { range 2 { len program } 1 } } {
+                        let result = result ^ i;
+                    };
+                    (result)
+                },
+                "concat" = {
+                    text.concat { list.slice program { range 1 { len program } 1 } }
+                },
+                "define" = {
+                    let environment = { list.concat [[program :: 1, program :: 2]] environment };
+                },
+                _ = { fault }
+            }
+        },
+        "text" = {
+            if { dict.get environment program } it else program
+        },
+        _ = program
+    }};
+    ([result, environment])
 };
 
 func ( parse source ) {
@@ -104,14 +116,17 @@ func ( tokenize source ) {
 };
 
 puts "idol Lisp";
+let environment = [];
+
 let flag = 1;
 while (flag == 1) {
     let s-expr = { input "> " };
     if (s-expr == ":q") {
         let flag = 0;
     } else {
-        if { lisp { parse s-expr } } {
-            puts it
+        if { lisp { parse s-expr } environment } {
+            let environment = it :: 1;
+            puts (it :: 0);
         } else {
             puts "Error! something is wrong"
         }
