@@ -63,6 +63,16 @@ func ( text.set target index value ) {
     text.concat [before, value, after]
 };
 
+func ( dict.get target ident ) {
+    let result = null;
+    for i in target {
+        if (i :: 0 == ident) {
+            let result = i :: 1;
+        }
+    };
+    (null != result)
+};
+
 func ( puts value ) {
     print { if ({ type of value } == "text") value else { cast value to symbol } };
     print new-line
