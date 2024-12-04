@@ -279,10 +279,9 @@ impl Statement {
             let mut conds = vec![];
             for i in tokens {
                 let tokens = tokenize(i, vec!['='])?;
-                conds.push((
-                    Expr::parse(tokens.get(0)?.to_string())?,
-                    Expr::parse(tokens.get(1)?.to_string())?,
-                ))
+                for i in tokenize(tokens.get(0)?.to_string(), vec!['|'])? {
+                    conds.push((Expr::parse(i)?, Expr::parse(tokens.get(1)?.to_string())?))
+                }
             }
             Some(Statement::Match(expr, conds))
         } else if code.starts_with("for") {
