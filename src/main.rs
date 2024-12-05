@@ -184,8 +184,19 @@ impl Engine {
                         }
 
                         for (arg, val) in func_args.iter().zip(value_args) {
-                            let val = val.eval(frame)?;
-                            frame.scope.insert(arg.to_string(), val);
+                            if arg.starts_with('"') && arg.ends_with('"') {
+                                let arg = arg.get(1..arg.len() - 1)?.to_string();
+                                if let Expr::Value(Type::Symbol(val)) = val {
+                                    if arg != val {
+                                        return None;
+                                    }
+                                } else {
+                                    return None;
+                                }
+                            } else {
+                                let val = val.eval(frame)?;
+                                frame.scope.insert(arg.to_string(), val);
+                            }
                         }
                         code.eval(frame)?
                     } else {
@@ -398,40 +409,20 @@ impl Expr {
         let token = if let Ok(n) = token.parse::<f64>() {
             Expr::Value(Type::Number(n))
         } else if token.starts_with('(') && token.ends_with(')') {
-            let token = {
-                let mut token = token.clone();
-                token.remove(0);
-                token.remove(token.len() - 1);
-                token
-            };
+            let token = token.get(1..token.len() - 1)?.to_string();
             Expr::parse(token)?
         } else if token.starts_with('{') && token.ends_with('}') {
-            let token = {
-                let mut token = token.clone();
-                token.remove(0);
-                token.remove(token.len() - 1);
-                token
-            };
+            let token = token.get(1..token.len() - 1)?.to_string();
             Expr::Block(Engine::parse(token)?)
         } else if token.starts_with('[') && token.ends_with(']') {
-            let token = {
-                let mut token = token.clone();
-                token.remove(0);
-                token.remove(token.len() - 1);
-                token
-            };
+            let token = token.get(1..token.len() - 1)?.to_string();
             let mut list = vec![];
             for elm in tokenize(token, vec![','])? {
                 list.push(Expr::parse(elm.trim().to_string())?);
             }
             Expr::List(list)
         } else if token.starts_with('"') && token.ends_with('"') {
-            let token = {
-                let mut token = token.clone();
-                token.remove(0);
-                token.remove(token.len() - 1);
-                token
-            };
+            let token = token.get(1..token.len() - 1)?.to_string();
             Expr::Value(Type::Text(token))
         } else {
             Expr::Value(Type::Symbol(token))
