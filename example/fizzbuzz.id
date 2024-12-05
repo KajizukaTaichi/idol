@@ -1,6 +1,6 @@
 import stdlib.id;
 
-func ( fizzbuzz n ) {
+func ( fizzbuzz "of" n ) {
     match [n % 3, n % 5] {
         [0, 0] = "FizzBuzz",
         [0, _] = "Fizz",
@@ -10,5 +10,5 @@ func ( fizzbuzz n ) {
 };
 
 for i in { range 1 101 1 } {
-    print { fizzbuzz i }, new-line;
+    print { fizzbuzz of i }, new-line;
 }
