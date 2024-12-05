@@ -14,41 +14,41 @@ func ( lisp program environment ) {
             match (program :: 0) {
                 "+" = {
                     let result = program :: 1;
-                    for i in { list.slice program { range 2 { len program } 1 } } {
+                    for i in { list.slice { range 2 { len program } 1 } in program } {
                         let result = result + i;
                     };
                     (result)
                 },
                 "-" = {
                     let result = program :: 1;
-                    for i in { list.slice program { range 2 { len program } 1 } } {
+                    for i in { list.slice { range 2 { len program } 1 } in program } {
                         let result = result - i;
                     };
                     (result)
                 },
                 "*" = {
                     let result = program :: 1;
-                    for i in { list.slice program { range 2 { len program } 1 } } {
+                    for i in { list.slice { range 2 { len program } 1 } in program } {
                         let result = result * i;
                     };
                     (result)
                 },
                 "/" = {
                     let result = program :: 1;
-                    for i in { list.slice program { range 2 { len program } 1 } } {
+                    for i in { list.slice { range 2 { len program } 1 } in program } {
                         let result = result / i;
                     };
                     (result)
                 },
                 "^" = {
                     let result = program :: 1;
-                    for i in { list.slice program { range 2 { len program } 1 } } {
+                    for i in { list.slice { range 2 { len program } 1 } in program } {
                         let result = result ^ i;
                     };
                     (result)
                 },
                 "concat" = {
-                    text.concat { list.slice program { range 1 { len program } 1 } }
+                    text.concat { list.slice { range 1 { len program } 1 } in program }
                 },
                 "define" = {
                     let environment = environment + [program :: 1, program :: 2];
@@ -57,7 +57,7 @@ func ( lisp program environment ) {
             }
         },
         "text" = {
-            if { dict.get environment program } it else program
+            if { dict.get program from environment } it else program
         },
         _ = program
     }};
@@ -66,7 +66,7 @@ func ( lisp program environment ) {
 
 func ( parse source ) {
     if ((source :: 0 == "(") & (source :: ({ len source } - 1) == ")")) {
-        let tokens = { tokenize { text.slice source { range 1 ({ len source } - 1) 1 } } };
+        let tokens = { tokenize { text.slice { range 1 ({ len source } - 1) 1 } in source } };
         let result = [];
         for i in tokens {
             let result = result + { parse i };
