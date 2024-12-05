@@ -1,2 +1,2 @@
 # idol
-Lightweight programming language with the Goal-directed evaluation.
+Handy programming language with the Goal directed-evaluation for prototyping 
