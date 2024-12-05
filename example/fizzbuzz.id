@@ -10,5 +10,5 @@ func ( fizzbuzz n ) {
 };
 
 for i in { range 1 101 1 } {
-    puts { fizzbuzz i };
+    print { fizzbuzz i }, new-line;
 }
