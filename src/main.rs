@@ -73,7 +73,15 @@ impl Engine {
             result = match code {
                 Statement::Value(expr) => expr.eval(self)?,
                 Statement::Print(expr) => {
-                    print!("{}", expr.eval(self)?.get_text());
+                    for i in expr {
+                        print!(
+                            "{}",
+                            match i.eval(self)? {
+                                Type::Text(text) => text,
+                                other => other.get_symbol(),
+                            }
+                        );
+                    }
                     io::stdout().flush().unwrap();
                     Type::Null
                 }
@@ -202,7 +210,7 @@ impl Engine {
 #[derive(Debug, Clone)]
 enum Statement {
     Value(Expr),
-    Print(Expr),
+    Print(Vec<Expr>),
     Input(Expr),
     TypeOf(Expr),
     Cast(Expr, Expr),
@@ -230,9 +238,11 @@ impl Statement {
             };
             Some(Statement::Value(Expr::parse(code)?))
         } else if code.starts_with("print") {
-            Some(Statement::Print(Expr::parse(
-                code["print".len()..].to_string(),
-            )?))
+            let mut exprs = vec![];
+            for i in tokenize(code["print".len()..].to_string(), vec![','])? {
+                exprs.push(Expr::parse(i)?)
+            }
+            Some(Statement::Print(exprs))
         } else if code.starts_with("import") {
             Some(Statement::Import(code["import".len()..].trim().to_string()))
         } else if code.starts_with("input") {
