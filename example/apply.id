@@ -1,0 +1,11 @@
+func ( apply "function" f "by" arg "that" time "time") {
+    let result = arg;
+    let count = 0;
+    while (count < time) {
+        let result = { f result };
+        let count = count + 1;
+    };
+    (result)
+};
+
+print { apply function { lambda (n) (n + 1) } by 1 that 3 time };
