@@ -21,7 +21,7 @@ func ( len target ) {
     (i)
 };
 
-func ( list.slice target specified ) {
+func ( list.slice specified "in" target ) {
     let result = [];
     for i in specified {
         let result = result + (target :: i);
@@ -40,7 +40,7 @@ func ( list.concat target1 target2 ) {
     (result)
 };
 
-func ( list.set target index value ) {
+func ( list.set index "in" target "to" value  ) {
     let before = { list.slice target { range 0 index 1 } };
     let after = { list.slice target { range (index + 1) { len target } 1 } };
     list.concat (before + value) after
@@ -55,7 +55,7 @@ func ( list.reverse target) {
 };
 
 
-func ( text.slice target specified ) {
+func ( text.slice specified "in" target ) {
     let result = "";
     for i in specified {
         let result = result + (target :: i);
@@ -71,7 +71,7 @@ func ( text.concat target ) {
     (result)
 };
 
-func ( text.set target index value ) {
+func ( text.set index "in" target "to" value ) {
     let before = { text.slice target { range 0 index 1 } };
     let after = { text.slice target { range (index + 1) { len target } 1 } };
     text.concat [before, value, after]
@@ -85,7 +85,7 @@ func ( text.reverse target ) {
     (result)
 };
 
-func ( dict.get target ident ) {
+func ( dict.get ident "from" target  ) {
     let result = null;
     for i in target {
         if (i :: 0 == ident) {
